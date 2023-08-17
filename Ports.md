@@ -3,9 +3,10 @@ Who knew what an odyssey it'd be just figuring out a couple useful quick port se
 These are what's used in Netscanx's tcp_short, tcp_extra, and udp_short port specifications. FWIW, I also have ports 0-1023 (admin) and ALL (0-65535) on tap as well.
 *--ctg* 
 
-**TCP shortlist of commn/interesting ports [tcp_short]**
-----------------------------------------------------
-20 FTP21 FTP 
+### TCP shortlist of commn/interesting ports {"tcp_short"}
+____
+20 FTP
+21 FTP 
 22 SSH 
 23 Telnet 
 25 SMTP 
@@ -70,8 +71,8 @@ These are what's used in Netscanx's tcp_short, tcp_extra, and udp_short port spe
 8088 httpd alt
 8443 Apache Tomcat SSL
 
-**List of extra interesting TCP ports [tcp_extra]**
-----------------------------------------------------
+### List of extra interesting TCP ports {"tcp_extra"}
+____
 37 time
 49 TACACS
 70 Gopher
@@ -149,8 +150,8 @@ These are what's used in Netscanx's tcp_short, tcp_extra, and udp_short port spe
 20000 Usermin
 31337 So Leetx0r
 
-**UDP short list of common/interesting ports [udp_short]**
-----------------------------------------------------
+### UDP short list of common/interesting ports {"udp_short"}
+____
 67 DHCP/bootp
 68 DHCP/bootp
 69 TFTP
