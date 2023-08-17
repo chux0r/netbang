@@ -42,6 +42,7 @@ import (
 	"fmt"
 	"net"
 	"strings"
+	"time"
 	"unicode"
 	//	"os"
 	//	"flag"
@@ -130,6 +131,14 @@ func main() {
 		target := assembleHostPortString(thisScan.Target.Addr[0], port)
 		scanIt(target, thisScan.NetDeets.Protocol.Name, comchan)
 	}
+
+	// Go, go, gadget TRAFFIC COP
+	for targ, pt := range comchan {
+		go func(t string, p string) {
+			time.Sleep(500 * time.Millisecond) //<-- call Sleep() so it doesn't block in main()
+			scanIt(t, p, comchan)
+		}(targ, pt) //<- FUNCTION LITERAL: remember to call it after you define it, using "()"
+	}
 }
 
 func scanIt(target string, proto string, c chan string) {
@@ -137,22 +146,12 @@ func scanIt(target string, proto string, c chan string) {
 	if proto == "tcp" {
 		net.Dial(proto, target)
 	} else if proto == "udp" {
-		//net.DialUDP(proto, target)
-		fmt.Printf("\n\tUDP scanning normally happens here!") // ran into probs with UDP, will address later as TCP scanning is the 99% here
+		//net.DialUDP(proto, target) // ran into probs with UDP, will address later as TCP scanning is the 99% here
+		fmt.Printf("\n\tUDP scanning normally happens here!")
 	}
-	/*if err != nil {
-		fmt.Printf("\n\t%s >> Scan error: %s", addr, err) // FUTURE: err/testing pkg needs dev
-		continue
-	} else {
-		fmt.Printf("\n\t%s >> %s scanned by netscan-x", addr, strings.ToUpper(proto))
-	}*/
 	c <- target // let the channel broker know we're done
 	return
-
-	/*else {
-		return oserror.ErrInvalid // future: some validation/error correction for this edge/"other" case
-	}*/
-	// ALSO: when adding "fast" scanning, use "DialTimeOut", which allows us to set max time for name resolution, TCP connect
+	// When adding "fast" scanning, use "DialTimeOut", which allows us to set max time for name resolution, TCP connect
 	//
 	// func DialTimeout(network, address string, timeout time.Duration) (Conn, error)
 	// DialTimeout acts like Dial but takes a timeout.
