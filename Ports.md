@@ -1,8 +1,10 @@
-A quick look into a multitude of "common ports" docs on the 'net revealed a gob of conflicting, and in some instances, flat-out *wrong* information. In response (for better or for worse), I reconciled what I was reading with my own experiences as a pen tester, and curated this best-estimate list of port numbers one can use when they don't have the time, inclination, or patience to scan all 65535 ports. 
+Who knew what an odyssey it'd be just figuring out a couple useful quick port selection lists!  A quick look into a multitude of "common ports" docs on the 'net revealed a just gob of conflicting, and in some instances, flat-out *wrong* information. In response (for better or for worse), I reconciled that pile of crap into this best-estimate of common and/or interesting port numbers. Use it when you don't have the time, inclination, or patience to scan 65535 ports on every host. 
 
+These are what's used in Netscanx's tcp_short, tcp_extra, and udp_short port specifications. FWIW, I also have ports 0-1023 (admin) and ALL (0-65535) on tap as well.
+*--ctg* 
 
-**TCP quick/common ports**
-==============================================================
+### TCP shortlist of commn/interesting ports {"tcp_short"}
+____
 20 FTP
 21 FTP 
 22 SSH 
@@ -69,44 +71,8 @@ A quick look into a multitude of "common ports" docs on the 'net revealed a gob 
 8088 httpd alt
 8443 Apache Tomcat SSL
 
-**UDP quick ports**
-==========================================================
-67 DHCP/bootp
-68 DHCP/bootp
-69 TFTP
-123 NTP 
-138 MS NetBIOS Datagram Svc
-161 SNMP
-162 SNMP Trap
-264 BGP Multicast/bgmp
-500 ISAKMP/IKE
-514 syslog 
-520 RIP 
-521 RIPng 
-853 DNS over TLS
-902 VMWare ESXi
-1433 Microsoft SQL
-1434 Microsoft SQL
-1812 RADIUS
-1813 RADIUS 
-2049 NFS
-3268 MS global catalog LDAP
-3269 MS global catalog SSL
-3260 iSCSI Target
-3478 Ms Teams/Skype
-3479 Ms Teams/Skype
-3480 MS Teams/Skype
-3481 MS Teams/Skype
-4500 IPSec NAT Traversal
-4567 tram
-5000 UPnP
-5001 ?
-5060 SIP
-10000 BackupExec
-11371 OpenPGP HTTP Key Server
-
-**TCP extended ports**
-===========================================================
+### List of extra interesting TCP ports {"tcp_extra"}
+____
 37 time
 49 TACACS
 70 Gopher
@@ -183,3 +149,39 @@ A quick look into a multitude of "common ports" docs on the 'net revealed a gob 
 19132 Minecraft
 20000 Usermin
 31337 So Leetx0r
+
+### UDP short list of common/interesting ports {"udp_short"}
+____
+67 DHCP/bootp
+68 DHCP/bootp
+69 TFTP
+123 NTP 
+138 MS NetBIOS Datagram Svc
+161 SNMP
+162 SNMP Trap
+264 BGP Multicast/bgmp
+500 ISAKMP/IKE
+514 syslog 
+520 RIP 
+521 RIPng 
+853 DNS over TLS
+902 VMWare ESXi
+1433 Microsoft SQL
+1434 Microsoft SQL
+1812 RADIUS
+1813 RADIUS 
+2049 NFS
+3268 MS global catalog LDAP
+3269 MS global catalog SSL
+3260 iSCSI Target
+3478 Ms Teams/Skype
+3479 Ms Teams/Skype
+3480 MS Teams/Skype
+3481 MS Teams/Skype
+4500 IPSec NAT Traversal
+4567 tram
+5000 UPnP
+5001 ?
+5060 SIP
+10000 BackupExec
+11371 OpenPGP HTTP Key Server
