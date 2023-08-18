@@ -1,15 +1,15 @@
 /******************************************************************************
 * netscan-x
 *
-* Let's make our own TCP scanner in Golang for shits n giggles! -- chux0r
+* Network scanner written in Go, mostly to see if Go concurrency gives us any
+* advantage. Also, fun to see how far I can get network-features-wise.
+* Apologies to Fyodor LOL. Nmap is still and will likely remain, the bomb ;)
 *
-* Apologies to Fyodor LOL
-*
-* The basis for the thing is in the TCP protocol, of course! -----+
-*                                                                 |
-* SYN-> <-SYN/ACK ACK-> ::  OPEN PORT                             |
-* SYN-> <-RST           ::  CLOSED PORT   <-----------------------+
-* SYN-> (timeout)       ::  FILTERED PORT
+* 		The basis for the largest feature is the TCP protocol, of course!
+*  		                                                   |
+* 		SYN-> <-SYN/ACK ACK-> ::  OPEN PORT                |
+* 		SYN-> <-RST           ::  CLOSED PORT   <----------+
+* 		SYN-> (timeout)       ::  FILTERED PORT
 *
 * The rest, I'll make up as I see fit, by whatever entertains me most >8]
 *
@@ -17,15 +17,16 @@
 * CT Geigner ("chux0r")
 *
 *
-* Looks like we'll be using the standard "Dial" function (Dial? really?. Who
-* named this mofo, AT&T? TCPConnect would be a great name for this, and I spent
-* waaaay too much time in the "net" Go std package library before I realized
-* that "Dial" as what I was looking for. Whatever. What else is new in computer
-* hell these days? Nothin, that's what =)
+* We'll use the standard "Dial" function (Dial? really?. Who named this mofo,
+* AT&T? "TCPConnect" would be a great name for this, and I spent waaaay too much
+* time in the "net" Go std package library before I realized that "Dial" as what I
+* was seeking. Whatever. What else is new in computer hell these days? Nothin,
+* that's what =)
 *
 * Src: https://pkg.go.dev/net@go1.21.0
 *
 * "Do want" features hit-list:
+* ------------------------------------------------------
 * UDP scanning (DialUDP)
 * more integration using stdlib net structures and interfaces
 * ICMP host ping and other ICMP uses
@@ -85,31 +86,49 @@ func main() {
 	var sel rune
 	var thisScan ScanSpec
 	valid := true
-	comchan := make(chan string) // channel for all concurrent scan+result i/o brokering
+	comchan := make(chan string) // channel for all concurrent scan+result i/o buffering+brokering
+	// the unique per-job worker string (chan string) here is the "host:port"
+	// string given to Dial(); a.k.a "target", "targ", and "t"
 
 	// NOTE UI/user input needs to be in its own func eventually --ctg
 	// FLAGS :: this ui should only show when netscan-x is launched with "--interactive" (otherwise it's annoying and not flexible/scriptable)
+	thisScan.NetDeets.Protocol.Name = "tcp"
 	fmt.Scanf("\n\tEnter hostname or IP to scan: %s", thisScan.Target.Addr[0])
 	for valid {
 		fmt.Scanf("\nSelect one:\n\tA] TCP services scan, most common ports.\n\tB] TCP scan, extended ports list.\n\tC] TCP scan, ~1K admin ports only.\n\tD] TCP scan, exhaustive (~65K ports). \n\tE] UDP scan, common ports.\n\tF] Single host and port.\n\n\tSelect ->  %s", &sel)
 		sel = unicode.ToUpper(sel)
 		//Build the detailed ScanSpec object we'll pass to ScanIt()
 		switch sel {
-		case 'A': //TCP single host, scan only most common ports
-			thisScan.NetDeets.Protocol.Name = "tcp"
+		case 'A': // TCP single host, scan only most common ports
+
 			thisScan.NetDeets.PortList = buildScanPortsList("tcp_short")
-		case 'B': //TCP single host, scan common ports plus bigger list of ports we'd want to know about
-			thisScan.NetDeets.Protocol.Name = "tcp"
+			for _, port := range thisScan.NetDeets.PortList {
+				target := assembleHostPortString(thisScan.Target.Addr[0], port)
+				scanTcp(target, comchan)
+			}
+		case 'B': // TCP single host, scan common ports plus bigger list of ports we'd want to know about
 			thisScan.NetDeets.PortList = buildScanPortsList("tcp_extra")
-		case 'C': //TCP admin ports
-			thisScan.NetDeets.Protocol.Name = "tcp"
-			thisScan.NetDeets.PortList = buildScanPortsList("udp_short")
-		case 'D': //TCP all ports
-			thisScan.NetDeets.Protocol.Name = "tcp"
-			thisScan.NetDeets.PortList = buildScanPortsList("udp_short")
-		case 'E': //UDP single host, portlist "udp_short"
+			for _, port := range thisScan.NetDeets.PortList {
+				target := assembleHostPortString(thisScan.Target.Addr[0], port)
+				scanTcp(target, comchan)
+			}
+		case 'C': // TCP admin ports
+			for i := 0; i < int(adminPortRange); i++ {
+				target := assembleHostPortString(thisScan.Target.Addr[0], uint16(i))
+				scanTcp(target, comchan)
+			}
+		case 'D': // TCP all ports
+			for i := 0; i < int(maxPorts); i++ {
+				target := assembleHostPortString(thisScan.Target.Addr[0], uint16(i))
+				scanTcp(target, comchan)
+			}
+		case 'E': // UDP single host, portlist "udp_short"
 			thisScan.NetDeets.Protocol.Name = "udp"
 			thisScan.NetDeets.PortList = buildScanPortsList("udp_short")
+			for _, port := range thisScan.NetDeets.PortList {
+				target := assembleHostPortString(thisScan.Target.Addr[0], port)
+				scanTcp(target, comchan)
+			}
 		case 'F': // single host and port
 			fmt.Scanf("\n\tEnter port to scan: %s", thisScan.NetDeets.PortList[0])
 			for {
@@ -129,26 +148,21 @@ func main() {
 	// Scans awaaaaaaaay.......
 	for _, port := range thisScan.NetDeets.PortList {
 		target := assembleHostPortString(thisScan.Target.Addr[0], port)
-		scanIt(target, thisScan.NetDeets.Protocol.Name, comchan)
+		scanTcp(target, comchan)
 	}
 
-	// Go, go, gadget TRAFFIC COP
-	for targ, pt := range comchan {
-		go func(t string, p string) {
+	// Go, go, gadget AIR TRAFFIC CONTROL
+	for targ := range comchan {
+		go func(t string) {
 			time.Sleep(500 * time.Millisecond) //<-- call Sleep() so it doesn't block in main()
-			scanIt(t, p, comchan)
-		}(targ, pt) //<- FUNCTION LITERAL: remember to call it after you define it, using "()"
+			scanTcp(t, comchan)
+		}(targ) //<- FUNCTION LITERAL: remember to call it after you define it, using "()"
 	}
 }
 
-func scanIt(target string, proto string, c chan string) {
+func scanTcp(target string, c chan string) {
 
-	if proto == "tcp" {
-		net.Dial(proto, target)
-	} else if proto == "udp" {
-		//net.DialUDP(proto, target) // ran into probs with UDP, will address later as TCP scanning is the 99% here
-		fmt.Printf("\n\tUDP scanning normally happens here!")
-	}
+	net.Dial("tcp", target)
 	c <- target // let the channel broker know we're done
 	return
 	// When adding "fast" scanning, use "DialTimeOut", which allows us to set max time for name resolution, TCP connect
@@ -157,9 +171,16 @@ func scanIt(target string, proto string, c chan string) {
 	// DialTimeout acts like Dial but takes a timeout.
 }
 
+/*
+func scanUdp(target string, c chan string) {
+	net.DialUDP(proto, target,,) // ran into probs with UDP, will address later as TCP scanning is the 99% here
+	fmt.Printf("\n\tUDP scanning normally happens here!")
+}
+*/
+
 func assembleHostPortString(t string, p uint16) string {
-	str := fmt.Sprintf("%s:%d", t, p)
-	return str
+	s := fmt.Sprintf("%s:%d", t, p)
+	return s
 }
 
 func buildScanPortsList(sp string) []uint16 {
@@ -172,11 +193,10 @@ func buildScanPortsList(sp string) []uint16 {
 	case "tcp_short":
 		return tS
 	case "tcp_extra":
-		//tcpXtra := fmt.Append([]byte(tcpShort), []byte(tcpExt))
-		// make a slice able to hold the 2 uint16 TCP port arrays, with enough room for 32 more user-specified ports.
-		// made with len() so we can edit the portlist arrays without having to remember to update the  math
+		// make a slice able to hold the 2 uint16 TCP port arrays, with enough head room for 32 more user-specified ports.
+		// NOTE: Made with len() so we can edit the tS, tE, uS portlist definitions without having to remember to update the math
 		tX := make([]uint16, len(tS)+len(tE), len(tS)+len(tE)+32)
-		tX = append(tX, tS...) // q: does the "..." variadic mess up/de-calculate our intentional len+32? Maybe I should use "copy" instead...
+		tX = append(tX, tS...) // q: does the "..." variadic mess up our intentional len+32? Maybe I should use "copy" instead...
 		tX = append(tX, tE...)
 		return tX
 	case "udp_short":
