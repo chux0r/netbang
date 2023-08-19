@@ -42,11 +42,8 @@ package main
 import (
 	"fmt"
 	"net"
-	"strings"
 	"time"
 	"unicode"
-	//	"os"
-	//	"flag"
 )
 
 type ProtoSpec struct {
@@ -91,65 +88,50 @@ func main() {
 	// string given to Dial(); a.k.a "target", "targ", and "t"
 
 	// NOTE UI/user input needs to be in its own func eventually --ctg
-	// FLAGS :: this ui should only show when netscan-x is launched with "--interactive" (otherwise it's annoying and not flexible/scriptable)
+	// FLAGS :: this ui should only show when netscanx is launched with "--interactive" (otherwise it's annoying and not flexible/scriptable)
 	thisScan.NetDeets.Protocol.Name = "tcp"
-	fmt.Scanf("\n\tEnter hostname or IP to scan: %s", thisScan.Target.Addr[0])
+	fmt.Printf("\n\tEnter hostname or IP to scan: ")
+	fmt.Scanf("%s", &thisScan.Target.Addr[0])
 	for valid {
-		fmt.Scanf("\nSelect one:\n\tA] TCP services scan, most common ports.\n\tB] TCP scan, extended ports list.\n\tC] TCP scan, ~1K admin ports only.\n\tD] TCP scan, exhaustive (~65K ports). \n\tE] UDP scan, common ports.\n\tF] Single host and port.\n\n\tSelect ->  %s", &sel)
+		fmt.Printf("\nSelect one:\n\tA] TCP services scan, most common ports.\n\tB] TCP scan, extended ports list.\n\tC] TCP scan, ~1K admin ports only.\n\tD] TCP scan, exhaustive (~65K ports).\n\tF] Single host and port.\n\n\tSelect ->  ")
+		fmt.Scanf("%c", &sel)
 		sel = unicode.ToUpper(sel)
-		//Build the detailed ScanSpec object we'll pass to ScanIt()
-		switch sel {
-		case 'A': // TCP single host, scan only most common ports
+		if sel == 'A' { // TCP single host, scan only most common ports
 
 			thisScan.NetDeets.PortList = buildScanPortsList("tcp_short")
 			for _, port := range thisScan.NetDeets.PortList {
 				target := assembleHostPortString(thisScan.Target.Addr[0], port)
-				scanTcp(target, comchan)
+				go scanTcp(target, comchan)
 			}
-		case 'B': // TCP single host, scan common ports plus bigger list of ports we'd want to know about
+		} else if sel == 'B' { // TCP single host, scan common ports plus bigger list of ports we'd want to know about
 			thisScan.NetDeets.PortList = buildScanPortsList("tcp_extra")
 			for _, port := range thisScan.NetDeets.PortList {
 				target := assembleHostPortString(thisScan.Target.Addr[0], port)
-				scanTcp(target, comchan)
+				go scanTcp(target, comchan)
 			}
-		case 'C': // TCP admin ports
-			for i := 0; i < int(adminPortRange); i++ {
+		} else if sel == 'C' { // TCP admin ports
+			for i := uint(1); i < adminPortRange; i++ {
 				target := assembleHostPortString(thisScan.Target.Addr[0], uint16(i))
-				scanTcp(target, comchan)
+				go scanTcp(target, comchan)
 			}
-		case 'D': // TCP all ports
-			for i := 0; i < int(maxPorts); i++ {
+		} else if sel == 'D' { // TCP all ports
+			for i := uint16(1); i < maxPorts; i++ {
 				target := assembleHostPortString(thisScan.Target.Addr[0], uint16(i))
-				scanTcp(target, comchan)
-			}
-		case 'E': // UDP single host, portlist "udp_short"
-			thisScan.NetDeets.Protocol.Name = "udp"
-			thisScan.NetDeets.PortList = buildScanPortsList("udp_short")
-			for _, port := range thisScan.NetDeets.PortList {
-				target := assembleHostPortString(thisScan.Target.Addr[0], port)
-				scanTcp(target, comchan)
-			}
-		case 'F': // single host and port
-			fmt.Scanf("\n\tEnter port to scan: %s", thisScan.NetDeets.PortList[0])
-			for {
-				fmt.Scanf("\n\tWhat protocol? (TCP or UDP): %s", &thisScan.NetDeets.Protocol.Name)
-				thisScan.NetDeets.Protocol.Name = strings.ToLower(thisScan.NetDeets.Protocol.Name)
-				if thisScan.NetDeets.Protocol.Name == "tcp" || thisScan.NetDeets.Protocol.Name == "udp" {
-					break // it's good! Break outta this fresh hell.
-				} else {
-					fmt.Printf("\n\tError! \"%s\" is an invalid protocol selection.", thisScan.NetDeets.Protocol.Name)
-				}
-			}
-		default:
-			fmt.Printf("\n\tError! \"%c\" is an invalid menu selection.", sel)
+				go scanTcp(target, comchan)
+			} // "E" will be UDP, shortlist of common ports
+		} else if sel == 'F' { // single host and port
+			fmt.Printf("\n\tEnter the port to scan: ")
+			fmt.Scanf("%d", &thisScan.NetDeets.PortList[0])
+		} else {
+			fmt.Printf("\nInvalid choice: %q%c!\n", sel)
 			valid = false
 		}
 	}
 	// Scans awaaaaaaaay.......
-	for _, port := range thisScan.NetDeets.PortList {
+	/* for _, port := range thisScan.NetDeets.PortList {
 		target := assembleHostPortString(thisScan.Target.Addr[0], port)
 		scanTcp(target, comchan)
-	}
+	}*/
 
 	// Go, go, gadget AIR TRAFFIC CONTROL
 	for targ := range comchan {
@@ -161,7 +143,6 @@ func main() {
 }
 
 func scanTcp(target string, c chan string) {
-
 	net.Dial("tcp", target)
 	c <- target // let the channel broker know we're done
 	return
@@ -170,13 +151,6 @@ func scanTcp(target string, c chan string) {
 	// func DialTimeout(network, address string, timeout time.Duration) (Conn, error)
 	// DialTimeout acts like Dial but takes a timeout.
 }
-
-/*
-func scanUdp(target string, c chan string) {
-	net.DialUDP(proto, target,,) // ran into probs with UDP, will address later as TCP scanning is the 99% here
-	fmt.Printf("\n\tUDP scanning normally happens here!")
-}
-*/
 
 func assembleHostPortString(t string, p uint16) string {
 	s := fmt.Sprintf("%s:%d", t, p)
@@ -227,6 +201,14 @@ func init() {
 		}
 	}
 }
+*/
+
+/*
+func scanUdp(target string, c chan string) {
+	net.DialUDP(proto, target,,) // ran into probs with UDP, will address later as TCP scanning is the 99% here
+	fmt.Printf("\n\tUDP scanning normally happens here!")
+}
+
 */
 
 /* ICMP ping reference code:
