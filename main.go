@@ -74,21 +74,11 @@ const (
 func main() {
 	var thisScan ScanSpec // newScanSpec constructor, returning *ScanSpec
 
-	thisScan.Target.Addr = "127.0.0.1" // host/IP assignment. [NOTE: for net.Dial() host must be ipv4] IPv4/ipv6 tools
-	thisScan.NetDeets.Protocol = "tcp" // TCP/UDP/ICMP scanning selector
-	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win")
+	thisScan.Target.Addr = "127.0.0.1"                          // host/IP assignment. [NOTE: for net.Dial() host must be ipv4] IPv4/ipv6 tools
+	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scanning selector
+	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - remove after MVP #7
 	for _, port := range thisScan.NetDeets.PortList {
-		dialTarg := fmt.Sprintf("%s:%d", thisScan.Target.Addr, port)
-		fmt.Printf("\t\tScanning target: [%s:%d]: ", thisScan.Target.Addr, port)
-		conn, err := net.Dial(thisScan.NetDeets.Protocol, dialTarg)
-		if err != nil {
-			fmt.Printf("Error: [")
-			fmt.Print(err)
-			fmt.Printf("]\n")
-		} else {
-			fmt.Print("Success\n")
-			conn.Close()
-		}
+		tcpScan(thisScan.Target.Addr, port)
 	}
 }
 
@@ -116,4 +106,26 @@ func buildPortsList(sp string) []uint16 {
 	default:
 		return []uint16{0} // zero is the error condition
 	}
+}
+
+/*
+tcpScan() takes an ipv4 address (string) and a port number (uint16), converts
+them to a DialTCP target string, and then scans the target host:port
+*/
+func tcpScan(h string, p uint16) {
+	target := getTcpHostPortString(h, p)
+	conn, err := net.Dial("tcp", target)
+	if err != nil {
+		fmt.Printf("Error: [")
+		fmt.Print(err)
+		fmt.Printf("]\n")
+	} else {
+		fmt.Print("Success\n")
+		conn.Close()
+	}
+}
+
+func getTcpHostPortString(t string, p uint16) string {
+	s := fmt.Sprintf("%s:%d", t, p)
+	return s
 }
