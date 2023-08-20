@@ -25,7 +25,7 @@
 *
 * Src: https://pkg.go.dev/net@go1.21.0
 *
-* "Do want" features hit-list:
+* "Nice to have" neato features hit-list:
 * ------------------------------------------------------
 * UDP scanning (DialUDP)
 * more integration using stdlib net structures and interfaces
@@ -35,8 +35,6 @@
 * BGP fun
 * DNS fun
 * SSL cert eval, and validation
-* ports list read from config file
-* New ScanSpec instance constructor func
 * IP history & "associations"
 * Packet & Flags constructor
 ******************************************************************************/
@@ -78,7 +76,8 @@ func main() {
 	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scanning selector
 	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - remove after MVP #7
 	for _, port := range thisScan.NetDeets.PortList {
-		tcpScan(thisScan.Target.Addr, port)
+		target := getTcpHostPortString(thisScan.Target.Addr, port)
+		tcpScan(target)
 	}
 }
 
@@ -112,9 +111,8 @@ func buildPortsList(sp string) []uint16 {
 tcpScan() takes an ipv4 address (string) and a port number (uint16), converts
 them to a DialTCP target string, and then scans the target host:port
 */
-func tcpScan(h string, p uint16) {
-	target := getTcpHostPortString(h, p)
-	conn, err := net.Dial("tcp", target)
+func tcpScan(t string) {
+	conn, err := net.Dial("tcp", t)
 	if err != nil {
 		fmt.Printf("Error: [")
 		fmt.Print(err)

@@ -1,6 +1,6 @@
 ```
 Name:  Netscanx
-Version:  0.21 Alpha
+Version:  0.22 Alpha
 Date:  20AUG2023
 Author:     Chuck Geigner *chux0r*
 Org:        MegaOhm.net
