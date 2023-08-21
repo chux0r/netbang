@@ -43,6 +43,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"sync"
 )
 
 type TargetSpec struct {
@@ -70,15 +71,17 @@ const (
 )
 
 func main() {
-	var thisScan ScanSpec // newScanSpec constructor, returning *ScanSpec
-
-	thisScan.Target.Addr = "127.0.0.1"                          // host/IP assignment. [NOTE: for net.Dial() host must be ipv4] IPv4/ipv6 tools
-	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scanning selector
+	var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
+	var wg sync.WaitGroup
+	thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
+	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scan indicator
 	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - remove after MVP #7
 	for _, port := range thisScan.NetDeets.PortList {
 		target := getTcpHostPortString(thisScan.Target.Addr, port)
-		tcpScan(target)
+		go tcpScan(target, &wg) // fire all scans off concurrently
+		wg.Add(1)               // queue up one waitgroup per scan
 	}
+	wg.Wait() // wait for the returns to finish
 }
 
 func buildPortsList(sp string) []uint16 {
@@ -108,19 +111,20 @@ func buildPortsList(sp string) []uint16 {
 }
 
 /*
-tcpScan() takes an ipv4 address (string) and a port number (uint16), converts
-them to a DialTCP target string, and then scans the target host:port
+tcpScan() takes a Dial target string [ipv4addr:portnum], scans that target, and adjust the waitgroup counter
 */
-func tcpScan(t string) {
+func tcpScan(t string, wg *sync.WaitGroup) {
 	conn, err := net.Dial("tcp", t)
+	fmt.Printf("tcpScan [%s] :: ", t)
 	if err != nil {
 		fmt.Printf("Error: [")
 		fmt.Print(err)
 		fmt.Printf("]\n")
 	} else {
-		fmt.Print("Success\n")
+		fmt.Print("Success!\n")
 		conn.Close()
 	}
+	wg.Done()
 }
 
 func getTcpHostPortString(t string, p uint16) string {
