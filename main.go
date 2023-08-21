@@ -1,29 +1,18 @@
 /******************************************************************************
 * netscanx
+* (net-SKANKZ)
 *
-* Network scanner written in Go, mostly to see if Go concurrency gives us any
-* advantage. Also, fun to see how far I can get network-features-wise.
-* Apologies to Fyodor LOL. Nmap is still and will likely remain, the bomb ;)
+* Scrappy network scanner written in Go, mostly to answer what boost Go
+* concurrency gives. Also, fun to see how far I can get network-features-wise.
 *
-* 		The basis for the largest feature is the TCP protocol, of course!
-*  		                                                   |
-* 		SYN-> <-SYN/ACK ACK-> ::  OPEN PORT                |
-* 		SYN-> <-RST           ::  CLOSED PORT   <----------+
-* 		SYN-> (timeout)       ::  FILTERED PORT
+* Props to Fyodor =) Nmap is still and will likely remain, the boooooomb ;)
+* In other words, this isn't supposed to replace or unthrone anything; maybe
+* just add to a class of cool tools I have used and love.
 *
-* The rest, I'll make up as I see fit, by whatever entertains me most >8]
+* Making this up as I go, by whatever entertains me most >8]
 *
 * 14AUG2023
 * CT Geigner ("chux0r")
-*
-*
-* We'll use the standard "Dial" function (Dial? really?. Who named this mofo,
-* AT&T? "TCPConnect" would be a great name for this, and I spent waaaay too much
-* time in the "net" Go std package library before I realized that "Dial" as what I
-* was seeking. Whatever. What else is new in computer hell these days? Nothin,
-* that's what =)
-*
-* Src: https://pkg.go.dev/net@go1.21.0
 *
 * "Nice to have" neato features hit-list:
 * ------------------------------------------------------
@@ -41,22 +30,32 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"sync"
+	"time"
 )
-
-type TargetSpec struct {
-	Addr string // names or IPs in string fmt == we should use net.Addr.String() for each element
-	Ip   net.IP // []byte, it's the methods we want, really
-	//Mac  net.HardwareAddr // layer 2; local net
-}
 
 type NetSpec struct {
 	Protocol string   // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
 	PortList []uint16 // all der portz
-	//Flags    net.Flags		// xmas comes early, every time
+	//Flags    net.Flags		// xmas comes early, every time; (impl. syscall.RawConn)
 	//Packet 	 []byte			// packet constructor
+}
+
+type DnsData struct {
+	Dns      net.Resolver // DNS fun, but mostly lookups/resolution
+	Addrs    []string     // IPs resolved
+	RevNames []string     // IP reverse-lookup names
+}
+
+type TargetSpec struct {
+	Addr    string // names or IPs in string fmt == we should use net.Addr.String() for each element
+	Ip      net.IP // []byte, it's the methods we want, really
+	isIp    bool
+	isHostn bool
+	//Mac  net.HardwareAddr // layer 2; local net
 }
 
 type ScanSpec struct {
@@ -73,17 +72,61 @@ const (
 func main() {
 	var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
 	var wg sync.WaitGroup
+
 	thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
 	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scan indicator
 	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - remove after MVP #7
+	// TCP scan :: invoke section [TODO:MODULE->MOVE]
 	for _, port := range thisScan.NetDeets.PortList {
-		target := getTcpHostPortString(thisScan.Target.Addr, port)
+		target := getHostPortString(thisScan.Target.Addr, port)
 		go tcpScan(target, &wg) // fire all scans off concurrently
 		wg.Add(1)               // queue up one waitgroup per scan
 	}
 	wg.Wait() // wait for the returns to finish
+	// TCP scan done
+
+	// DNS Lookup :: invoke section [TODO:MODULE->MOVE]
+	thisScan.Target.Addr = "chux0r.org" // TEST NAME REM before v.1
+	t := net.ParseIP(thisScan.Target.Addr)
+	var Resolv DnsData
+	ctx := context.Background() // TEST/TODO: determine which context would be most helpful in a DNS lookup. Using Background() for now
+	if t != nil {
+		thisScan.Target.Ip = []byte(thisScan.Target.Addr)
+		thisScan.Target.isIp = true
+	} else {
+		thisScan.Target.isHostn = true
+		fmt.Printf("DNS Lookup for %s: \n", thisScan.Target.Addr)
+
+		addrs, err := Resolv.Dns.LookupHost(ctx, thisScan.Target.Addr)
+		if err != nil {
+			fmt.Printf("Error: [")
+			fmt.Print(err)
+			fmt.Printf("]\n")
+		} else {
+			for i, addr := range addrs {
+				fmt.Printf("\tIP #%d: %s\n", i+1, addr)
+			}
+		}
+		fmt.Printf("(DNS lookup complete)\n")
+	}
+
+	fmt.Printf("Now, with custom resolver def: [8.8.8.8:53]\n")
+	customResolver(&Resolv.Dns, "8.8.8.8") // TODO: convert to user-configurable
+	addrs, err := Resolv.Dns.LookupHost(ctx, thisScan.Target.Addr)
+	if err != nil {
+		fmt.Printf("Error: [")
+		fmt.Print(err)
+		fmt.Printf("]\n")
+	} else {
+		for i, addr := range addrs {
+			fmt.Printf("\tIP #%d: %s\n", i+1, addr)
+		}
+	}
+	fmt.Printf("(DNS lookup complete)\n")
+	// END DNS Lookup section
 }
 
+/* buildPortsList() returns a slice of uint16 port numbers useful for TCP and UDP scanning */
 func buildPortsList(sp string) []uint16 {
 
 	var tTw = []uint16{135, 137, 139, 445, 623, 3389, 5040, 5985, 8000, 9999} // TEST functionality; windows hosts
@@ -110,9 +153,7 @@ func buildPortsList(sp string) []uint16 {
 	}
 }
 
-/*
-tcpScan() takes a Dial target string [ipv4addr:portnum], scans that target, and adjust the waitgroup counter
-*/
+/* tcpScan() takes a Dial target string [ipv4addr:portnum], scans that target, and adjusts the waitgroup counter */
 func tcpScan(t string, wg *sync.WaitGroup) {
 	conn, err := net.Dial("tcp", t)
 	fmt.Printf("tcpScan [%s] :: ", t)
@@ -127,7 +168,20 @@ func tcpScan(t string, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func getTcpHostPortString(t string, p uint16) string {
+/* getHostPortString() returns a "host:port" target string usable by net.Dial() */
+func getHostPortString(t string, p uint16) string {
 	s := fmt.Sprintf("%s:%d", t, p)
 	return s
+}
+
+/* customResolver lets user set a custom DNS host, by IP. Port 53 is assumed. */
+func customResolver(dns *net.Resolver, ip string) {
+	dnsHost := getHostPortString(ip, uint16(53))
+	dns.PreferGo = true
+	dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
+		d := net.Dialer{
+			Timeout: time.Second * time.Duration(5), // FUTURE CONSIDERATION: Set custom timeout?
+		}
+		return d.DialContext(ctx, network, dnsHost) // TEST 8.8.8.8:53 as dnsHost
+	}
 }
