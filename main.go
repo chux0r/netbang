@@ -111,7 +111,7 @@ func main() {
 	}
 
 	fmt.Printf("Now, with custom resolver def: [8.8.8.8:53]\n")
-	customResolver(&Resolv.Dns, "8.8.8.8") // TODO: convert to user-configurable
+	setCustomResolver(&Resolv.Dns, "8.8.8.8") // TODO: convert to user-configurable
 	addrs, err := Resolv.Dns.LookupHost(ctx, thisScan.Target.Addr)
 	if err != nil {
 		fmt.Printf("Error: [")
@@ -174,8 +174,8 @@ func getHostPortString(t string, p uint16) string {
 	return s
 }
 
-/* customResolver lets user set a custom DNS host, by IP. Port 53 is assumed. */
-func customResolver(dns *net.Resolver, ip string) {
+/* setCustomResolver lets user set a custom DNS host, by IP. Port 53 is assumed. */
+func setCustomResolver(dns *net.Resolver, ip string) {
 	dnsHost := getHostPortString(ip, uint16(53))
 	dns.PreferGo = true
 	dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
