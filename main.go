@@ -33,6 +33,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -184,4 +185,55 @@ func setCustomResolver(dns *net.Resolver, ip string) {
 		}
 		return d.DialContext(ctx, network, dnsHost) // TEST 8.8.8.8:53 as dnsHost
 	}
+}
+
+/*
+parsePortsCdl() parses the comma-delimited string passed in by the user, using
+the --ports flag. Since the user can specify either numbers or port list names,
+the func must detect item type 1st, then perform validation. In the case of
+port numbers, since we bring everything as string data, there is some fun
+converting runes. Returns ports as []uint16, any named port lists as []string.
+*/
+func parsePortsCdl(s string) ([]uint16, []string) {
+	var r1 []string
+	var r2 []uint16
+	fmt.Println("ParsePortsCDL input string: ", s)
+	list := strings.Split(s, ",")
+	for _, item := range list { // Eval each list item
+		item = strings.TrimSpace(item) // be nice and trim it up, just in case
+		fmt.Println("\nItem:", item)   //TEST
+		num := false
+		var tot int32 = 0
+		itlen := len([]rune(item))
+		for i := itlen - 1; i >= 0; i-- { // walk the chars
+			char := item[i]
+			if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
+				num = false
+				break // if NaN, break out
+			} else { // Numeric; convert and calc
+				num = true
+				var mlt int32 = 1                         // multiplier, to rebuild our port num piece by piece``
+				fmt.Printf("\nNum character is %c", char) // TEST
+				if char != '0' {                          // only when we have a non zero num to compute
+					digit := itlen - 1 - i // len-1-i is most signif. digit L->R
+					//if digit > 0 {
+					for j := digit; j > 0; j-- { // computationally less expensive than using math.Pow10 and float64s :)
+						mlt = mlt * 10
+					}
+					//}
+					fmt.Printf(" times %d (x10^%d)", mlt, digit)
+					tot = tot + (int32(char)-48)*mlt
+					fmt.Printf(", totaling %d", tot)
+				}
+			}
+		}
+		if num == false { // put the name in the list of names
+			r1 = append(r1, item)
+		} else { // put the port in the list of ports
+			r2 = append(r2, uint16(tot))
+		}
+	}
+	fmt.Println("Strings slice: ", r1) // TEST
+	fmt.Print("uint16 slice: ", r2)    // TEST
+	return r2, r1
 }
