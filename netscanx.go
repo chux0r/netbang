@@ -31,8 +31,10 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -70,13 +72,90 @@ const (
 	maxPorts       uint16 = 65535
 )
 
-func main() {
-	var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
-	var wg sync.WaitGroup
+var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
 
-	thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
-	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scan indicator
-	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - remove after MVP #7
+func init() {
+
+	// TODO: complete flags/options commented out below:
+	helpDo := flag.Bool("help", false, "Pull up a \"help\" menu.")
+	//fakeDo := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
+	portsDo := flag.Bool("ports", false, "Define single ports, a comma-delimited port list, and/or a named portlist.")
+	//protoDo := flag.String("proto", "tcp", "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	//doDo := flag.String("do", "scan", "Specify the activity: scan, tcpscan, udpscan, dnsinfo. Default is \"scan\".")
+	//dnsrvDo := flag.String("resolver", "", "Set the DNS resolver IP to use. Default is your system's defined resolver")
+	listsDo := flag.Bool("lists", false, "Print listnames available. If listname specified (--lists <listname>), print that list's contents.")
+	flag.Parse()
+
+	if *helpDo || len(os.Args) <= 1 { //Launch help screen and exit
+		fmt.Print(
+			`
+USAGE:
+netscanx [-h|--help] :: Print this help screen
+netscanx [-l|--list] [<Listname>] :: Print all named port lists. With <Listname>, show all items in named list.
+
+netscanx [[FLAGS] <object(,optionals)>] <target>
+	FLAGS:
+	[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)> :: Specify activity(s): scan, 
+		tcpscan, udpscan, or dnsinfo. Default is "scan".
+	
+	[--ports] <num0(,num1,num2,...numN,named_list)> :: Specify port, ports, and/
+		or named portlists to use. (Portlists listed in --lists)
+	
+	[--proto] <protocol> :: Specify protocol to be used. Default is "tcp".
+	
+	[--dryrun] :: Print activities list, pre-validate targets, print config and
+		pre-conditions. Dry-run does NOT execute the scan.
+	
+	[--resolver] <ipaddr> Set new DNS resolver IP. Default is to use your 
+		system's local resolver.
+
+	<target>: 
+	Target must be an IP address, an IP/CIDR range, or a valid hostname
+
+`)
+		os.Exit(0)
+	} else if *listsDo != false {
+		if flag.Arg(0) == "" {
+			fmt.Print("Placeholder for list available lists\n") // TODO: list lists func
+		} else {
+			fmt.Print("Placeholder for per-list item printout\n") // TODO: list named list items func
+		}
+		os.Exit(0)
+	}
+	//if protoDo {}
+	if *portsDo {
+		if flag.Arg(0) == "" {
+			fmt.Print("Error: You must list ports to use after \"--ports\".")
+			os.Exit(1)
+		} else {
+			pargs := flag.Arg(0)                                        // gather user-spec'd ports
+			p, pl := parsePortsCdl(pargs)                               // TODO: create func that assembles final []uint16 port list from spec
+			fmt.Println("Ports specified: ", p, "List specified: ", pl) // TEST/TODO: remove when port assembler complete
+		}
+	}
+	// TARGET VALIDATION CODE GOES HERE
+	thisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg should always be always the target hostname/addr
+	/* // TEST OUTPUT
+	fmt.Printf("Number of Args is %d\n", len(os.Args))
+	for i, arg := range os.Args {
+		fmt.Printf("\nArg%d: %s\n", i, arg)
+	}
+	fmt.Println("helpDo has value ", *helpDo)
+	fmt.Println("fakeDo has value ", *fakeDo)
+	fmt.Println("portsDo has value ", *portsDo)
+	fmt.Println("protoDo has value ", *protoDo)
+	fmt.Println("doDo has value ", *doDo)
+	fmt.Println("dnsrvDo has value ", *dnsrvDo) */
+}
+
+func main() {
+
+	var wg sync.WaitGroup // set up wait group for concurrent scanning
+
+	// thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
+	thisScan.NetDeets.Protocol = "tcp"                          // TCP/UDP/ICMP scan indicator TODO: move this defaut to the constructor() func
+	thisScan.NetDeets.PortList = buildPortsList("tcp_test_win") // TEST LINE - TODO: remove after MVP #7 --ports check
+
 	// TCP scan :: invoke section [TODO:MODULE->MOVE]
 	for _, port := range thisScan.NetDeets.PortList {
 		target := getHostPortString(thisScan.Target.Addr, port)
@@ -87,14 +166,14 @@ func main() {
 	// TCP scan done
 
 	// DNS Lookup :: invoke section [TODO:MODULE->MOVE]
-	thisScan.Target.Addr = "chux0r.org" // TEST NAME REM before v.1
-	t := net.ParseIP(thisScan.Target.Addr)
+	// thisScan.Target.Addr = "megaohm.net" // TEST NAME REM before v.1
+	t := net.ParseIP(thisScan.Target.Addr) // Answers: is target a FQDN or an IP?
 	var Resolv DnsData
 	ctx := context.Background() // TEST/TODO: determine which context would be most helpful in a DNS lookup. Using Background() for now
-	if t != nil {
+	if t != nil {               // if Target is an IP
 		thisScan.Target.Ip = []byte(thisScan.Target.Addr)
 		thisScan.Target.isIp = true
-	} else {
+	} else { // if Target is a hostname/FQDN
 		thisScan.Target.isHostn = true
 		fmt.Printf("DNS Lookup for %s: \n", thisScan.Target.Addr)
 
@@ -177,7 +256,7 @@ func getHostPortString(t string, p uint16) string {
 
 /* setCustomResolver lets user set a custom DNS host, by IP. Port 53 is assumed. */
 func setCustomResolver(dns *net.Resolver, ip string) {
-	dnsHost := getHostPortString(ip, uint16(53))
+	dnsHost := getHostPortString(ip, uint16(53)) // TODO :: validate given IP
 	dns.PreferGo = true
 	dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 		d := net.Dialer{
