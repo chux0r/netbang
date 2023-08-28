@@ -76,13 +76,14 @@ var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
 var Resolv DnsData
 
 func init() {
+	scanConstructor()
 
 	// TODO: complete flags/options commented out below:
 	helpDo := flag.Bool("help", false, "Pull up a \"help\" menu.")
 	//fakeDo := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
 	portsDo := flag.Bool("ports", false, "Define single ports, a comma-delimited port list, and/or a named portlist.")
-	//protoDo := flag.String("proto", "tcp", "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	//doDo := flag.String("do", "scan", "Specify the activity: scan, tcpscan, udpscan, dnsinfo. Default is \"scan\".")
+	//protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	//doDo := flag.Bool("do", false, "Specify the activity: scan, tcpscan, udpscan, dnsinfo. Default is \"scan\".")
 	dnsrvDo := flag.Bool("resolver", false, "Set the DNS resolver IP to use. Default is your system's defined resolver")
 	listsDo := flag.Bool("lists", false, "Print listnames available. If listname specified (--lists <listname>), print that list's contents.")
 	flag.Parse()
@@ -129,6 +130,7 @@ netscanx [[FLAGS] <object(,optionals)>] <target>
 			fmt.Print("Error: You must list ports to use after \"--ports\".")
 			os.Exit(1)
 		} else {
+			thisScan.NetDeets.PortList = []uint16{}                     // clear the defaults
 			pargs := flag.Arg(0)                                        // gather user-spec'd ports
 			p, pl := parsePortsCdl(pargs)                               // TODO: create func that assembles final []uint16 port list from spec
 			fmt.Println("Ports specified: ", p, "List specified: ", pl) // TEST/TODO: remove when port assembler complete
@@ -149,6 +151,11 @@ netscanx [[FLAGS] <object(,optionals)>] <target>
 			}
 		}
 	}
+	/*if *doDo {
+		if flag.Arg(0) == "" {
+			fmt.Print("Error: You must specify which netscanx activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
+			os.Exit(1)
+	}*/
 	if *dnsrvDo {
 		if flag.Arg(0) == "" {
 			fmt.Print("Error: You must specify the IP of a DNS server to use with \"--resolver\".")
@@ -157,19 +164,8 @@ netscanx [[FLAGS] <object(,optionals)>] <target>
 			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
 		}
 	}
-	// TARGET VALIDATION CODE GOES HERE
+	// TODO: TARGET VALIDATION CODE GOES HERE
 	thisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg should always be always the target hostname/addr
-	/* // TEST OUTPUT
-	fmt.Printf("Number of Args is %d\n", len(os.Args))
-	for i, arg := range os.Args {
-		fmt.Printf("\nArg%d: %s\n", i, arg)
-	}
-	fmt.Println("helpDo has value ", *helpDo)
-	fmt.Println("fakeDo has value ", *fakeDo)
-	fmt.Println("portsDo has value ", *portsDo)
-	fmt.Println("protoDo has value ", *protoDo)
-	fmt.Println("doDo has value ", *doDo)
-	fmt.Println("dnsrvDo has value ", *dnsrvDo) */
 }
 
 func main() {
@@ -177,10 +173,8 @@ func main() {
 	var wg sync.WaitGroup // set up wait group for concurrent scanning
 
 	// thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
-	thisScan.NetDeets.Protocol = "tcp" // TCP/UDP/ICMP scan indicator TODO: move this default to the constructor() func
-	// thisScan.NetDeets.PortList = buildNamedPortsList("tcp_test_win") // TEST LINE - TODO: remove after putting in constructor()
 	if len(thisScan.NetDeets.PortList) <= 0 { // if no ports specified, set the default port list
-		thisScan.NetDeets.PortList = buildNamedPortsList("tcp_test_win")
+		thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
 	}
 	// TCP scan :: invoke section [TODO:MODULE->MOVE]
 	for _, port := range thisScan.NetDeets.PortList {
@@ -191,6 +185,15 @@ func main() {
 	}
 	wg.Wait() // wait for the returns to finish
 	// TCP scan done
+}
+
+/* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
+func scanConstructor() {
+	thisScan.NetDeets.Protocol = "tcp"
+	thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
+	thisScan.Target.isIp = false
+	thisScan.Target.isHostn = false
+	thisScan.Target.Addr = "127.0.0.1"
 }
 
 /*
@@ -208,14 +211,14 @@ func buildPortsList(a []uint16) {
 /* buildNamedPortsList() returns a slice of named, prebuilt uint16 port numbers useful for TCP and UDP scanning */
 func buildNamedPortsList(sp string) []uint16 {
 
-	var tTw = []uint16{135, 137, 139, 445, 623, 3389, 5040, 5985, 8000, 9999} // TEST functionality; windows hosts
+	var tT = []uint16{135, 137, 139, 445, 623, 3389, 5040, 5985, 8000, 9999} // TEST functionality; windows hosts
 	var tS = []uint16{20, 21, 22, 23, 25, 43, 53, 67, 68, 69, 79, 80, 88, 110, 111, 113, 119, 135, 137, 139, 143, 177, 179, 389, 443, 445, 464, 512, 513, 514, 515, 546, 547, 587, 593, 636, 853, 873, 989, 990, 993, 995, 1270, 1337, 1433, 1434, 1521, 2222, 2323, 2375, 2483, 2484, 3306, 3333, 3389, 5060, 5061, 5432, 5800, 5900, 8008, 8080, 8081, 8088, 8443}
 	var tE = []uint16{37, 49, 70, 82, 83, 85, 109, 115, 162, 201, 220, 264, 444, 464, 497, 530, 543, 544, 601, 631, 639, 666, 749, 750, 751, 752, 843, 902, 903, 992, 1080, 1194, 1514, 1701, 1723, 1741, 1812, 1813, 2049, 2082, 2083, 2095, 2096, 2100, 2376, 2638, 3128, 3268, 3269, 3689, 4333, 4444, 5000, 6514, 6881, 8000, 8089, 6000, 6001, 6665, 6666, 6667, 6668, 6669, 8333, 8334, 8888, 9001, 9333, 10000, 12345, 18080, 18081, 19132, 20000, 31337}
 	var uS = []uint16{67, 68, 69, 123, 138, 161, 162, 264, 500, 514, 520, 521, 853, 902, 1433, 1434, 1812, 1813, 2049, 3268, 3269, 3260, 3478, 3479, 3480, 3481, 4500, 4567, 5000, 5001, 5060, 10000, 11371}
 
 	switch sp {
-	case "tcp_test_win":
-		return tTw
+	case "tcp_test":
+		return tT
 	case "tcp_short":
 		return tS
 	case "tcp_extra":
@@ -270,10 +273,9 @@ resolveName() accepts a hostname or IP string and populates global DnsData
 with any/all resolved IPs
 */
 func resolveName(s string) { // var Resolv DnsData is a global struct
-	// thisScan.Target.Addr = "megaohm.net" // TEST NAME REM before v.1
 	var err error
-	ctx := context.Background() // TEST/TODO: determine which context would be most helpful in a DNS lookup. Using Background() for now
-	t := net.ParseIP(s)         // Answers: is target a FQDN or an IP?
+	ctx := context.Background() // TODO: determine which context would be most helpful. Using Background() for now
+	t := net.ParseIP(s)         // TODO: move to whatTargetType() func. Answers: is target a FQDN or an IP?
 	if t != nil {               // if Target is an IP
 		thisScan.Target.Ip = []byte(s)
 		thisScan.Target.isIp = true
