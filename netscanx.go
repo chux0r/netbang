@@ -26,6 +26,7 @@
 * SSL cert eval, and validation
 * IP history & "associations"
 * Packet & Flags constructor
+* Recon using Shodan data
 ******************************************************************************/
 package main
 
@@ -76,44 +77,56 @@ func init() {
 	scanConstructor() // initialize our struct with reasonable default values
 
 	// TODO: complete flags/options commented out below:
-	helpDo := flag.Bool("help", false, "Pull up a \"help\" menu.")
+	//doDo := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
 	//fakeDo := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
-	portsDo := flag.Bool("ports", false, "Define single ports, a comma-delimited port list, and/or a named portlist.")
+	helpDo := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
+	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
+	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
+	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
+	portsDo := flag.Bool("ports", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
 	//protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	//doDo := flag.Bool("do", false, "Specify the activity: scan, tcpscan, udpscan, dnsinfo. Default is \"scan\".")
-	dnsrvDo := flag.Bool("resolver", false, "Set the DNS resolver IP to use. Default is your system's defined resolver")
-	listsDo := flag.Bool("lists", false, "Print listnames available. If listname specified (--lists <listname>), print that list's contents.")
+	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	
 	flag.Parse()
 
-	if *helpDo || len(os.Args) <= 1 { //Launch help screen and exit
+	// HELP MENU
+	if *helpDo || *helpDo2 || len(os.Args) <= 1 { //Launch help screen and exit
 		fmt.Print(
 			`
 USAGE:
-netscanx [-h|--help] :: Print this help screen
-netscanx [-l|--list] [<Listname>] :: Print all named port lists. With <Listname>, show all items in named list.
+netscanx [-h|--help]
+	Print this help screen
+netscanx [-l|--lists] [<Listname>] 
+	Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing for <Listname>. 
 
-netscanx [[FLAGS] <object(,optionals)>] <target>
-	FLAGS:
-	[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)> :: Specify activity(s): scan, 
-		tcpscan, udpscan, or dnsinfo. Default is "scan".
+netscanx [[FLAGS] <object(,optionals)>] <TARGET>
+	FLAGS
+		[--ports] <num0(,num1,num2,...numN,named_list)> 
+		Specify port, ports, and/or named portlists to use. TCP or UDP proto only. 
+		(Portlists listed in --lists)
+		
+		[--resolver] <ipaddr> 
+		DNS resolver to use. Default is to use your system's local resolver.
 	
-	[--ports] <num0(,num1,num2,...numN,named_list)> :: Specify port, ports, and/
-		or named portlists to use. (Portlists listed in --lists)
+	<TARGET> 
+		Object of scan. Target must be an IP address, an IP/CIDR range, or a valid 
+		hostname.
 	
-	[--proto] <protocol> :: Specify protocol to be used. Default is "tcp".
-	
-	[--dryrun] :: Print activities list, pre-validate targets, print config and
-		pre-conditions. Dry-run does NOT execute the scan.
-	
-	[--resolver] <ipaddr> DNS resolver to use. Default is to use your system's 
-		local resolver.
-
-	<target>: 
-	Target must be an IP address, an IP/CIDR range, or a valid hostname
-
 `)
+	/* On tap, but not ready yet --ctg
+	
+	
+	[--dryrun] 
+		Print activities list, pre-validate targets, print config and pre-conditions. 
+		Dry-run does NOT execute the scan.
+	[--proto] <protocol> 
+		Specify scanning protocol, tcp, udp, or icmp. Default is "tcp".
+		
+	[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)> 
+		Specify activity(s): scan, tcpscan, udpscan, or dnsinfo. Default is "scan". */
+		
 		os.Exit(0)
-	} else if *listsDo != false {
+	} else if *listsDo != false || *listsDo2 != false {
 		if flag.Arg(0) == "" {
 			fmt.Print("Placeholder for list available lists\n") // TODO: list lists func
 		} else {
@@ -124,7 +137,7 @@ netscanx [[FLAGS] <object(,optionals)>] <target>
 	//if protoDo {}
 	if *portsDo {
 		if flag.Arg(0) == "" {
-			fmt.Print("Error: You must list ports to use after \"--ports\".")
+			fmt.Print("Error: No ports listed! You must list at least one port to use after \"--ports\".")
 			os.Exit(1)
 		} else {
 			thisScan.NetDeets.PortList = []uint16{}                     // clear the defaults
@@ -148,11 +161,14 @@ netscanx [[FLAGS] <object(,optionals)>] <target>
 			}
 		}
 	}
-	/*if *doDo {
+	/*
+	if *doDo {
 		if flag.Arg(0) == "" {
 			fmt.Print("Error: You must specify which netscanx activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
 			os.Exit(1)
-	}*/
+		}
+	}
+	*/
 	if *dnsrvDo {
 		if flag.Arg(0) == "" {
 			fmt.Print("Error: You must specify the IP of a DNS server to use with \"--resolver\".")
@@ -170,7 +186,7 @@ func main() {
 	var wg sync.WaitGroup // set up wait group for concurrent scanning
 
 	// thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
-	if len(thisScan.NetDeets.PortList) <= 0 { // if no ports specified, set the default port list
+	if len(thisScan.NetDeets.PortList) <= 0 { // if no ports specified, use the default port list
 		thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
 	}
 	// TCP scan :: invoke section [TODO:MODULE->MOVE]
@@ -187,14 +203,13 @@ func main() {
 /* tcpScan() takes a Dial target string [ipv4addr:portnum], scans that target, and adjusts the waitgroup counter */
 func tcpScan(t string, wg *sync.WaitGroup) {
 	conn, err := net.Dial("tcp", t)
-	fmt.Printf("tcpScan [%s] :: ", t)
+	pre := fmt.Sprintf("\ntcpScan [%s] ::\t", t) 
 	if err != nil {
-		fmt.Printf("Error: [")
-		fmt.Print(err)
-		fmt.Printf("]\n")
+		fmt.Print(pre, err)
 	} else {
-		fmt.Print("Success!\n")
-		conn.Close()
+		fmt.Print(pre, "SUCCESS")
+		conn.Close()	
 	}
+	
 	wg.Done()
 }
