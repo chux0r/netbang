@@ -14,19 +14,35 @@
 * 14AUG2023
 * CT Geigner ("chux0r")
 *
-* "Nice to have" neato features hit-list:
+*
+* Things to ponder, improve, solve
 * ------------------------------------------------------
+* net.Dial() is pretty ok, but it abstracts lots of stuff I'd like to monitor
+* or even change. Right now, I don't know if the connection error strings are
+* coming from some golang tcp errno lib or if they come from my OS. I'm stuck
+* with a full-3-way TCP handshake since there's no controlling the connection
+* or the flags or anything like that.
+*
+* Next features hit-list:
+* ------------------------------------------------------
+* Better report/output mech/structure
 * UDP scanning (DialUDP)
-* more integration using stdlib net structures and interfaces
-* ICMP scanning/host ping and other ICMP uses
-* Hardware address/local network tomfoolery
+* Recon using Shodan data
+* Connect() Flags scan configurations (TCP half open, Xmas, etc)
+* Improved error processing/context-adding/reporting
+*
+* "Nice to have"
+* ______________________________________________________
 * Multicast fun
 * BGP fun
 * DNS fun
 * SSL cert eval, and validation
 * IP history & "associations"
-* Packet & Flags constructor
-* Recon using Shodan data
+* Packet constructor
+* Custom TCP flags options
+* more integration using stdlib net structures and interfaces
+* ICMP scanning/host ping and other ICMP uses
+* Hardware address/local network tomfoolery
 ******************************************************************************/
 package main
 
@@ -35,7 +51,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"sync"
 )
 
 type NetSpec struct {
@@ -77,15 +92,21 @@ func init() {
 	scanConstructor() // initialize our struct with reasonable default values
 
 	// TODO: complete flags/options commented out below:
-	//doDo := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
-	//fakeDo := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
-	helpDo := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
-	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
-	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
-	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
-	portsDo := flag.Bool("ports", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
-	//protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
+	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
+	helpDo     := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
+	helpDo2    := flag.Bool("help", false, "Same as \"-h\", above.")
+	listsDo    := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
+	listsDo2   := flag.Bool("lists", false, "Same as \"-l\", above.")
+	portsDo    := flag.Bool("ports", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
+	//protoDo    := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	dnsrvDo    := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	/* 
+	verboseDo  := flag.Bool("v", false, "Verbose runtime output")
+	verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
+	verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
+	verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
+	*/
 	
 	flag.Parse()
 
@@ -183,33 +204,69 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 
 func main() {
 
-	var wg sync.WaitGroup // set up wait group for concurrent scanning
-
-	// thisScan.Target.Addr = "127.0.0.1"                          // host/IP target. [NOTE: net.Dial() host must be IP]
+	// TCP scan - For all ports given, scan single host and format results
+	// :: invoke section [TODO:MODULE->MOVE]
+	scanReport := make([]string, 0, len(thisScan.NetDeets.PortList)) // report of scan responses, usually by tcp/udp port number. Portlist len to avoid reslicing.
+	scanIpc := make(chan string)             // com pipe: raw, unordered host:port try response data or errors
+	printReport(scanReport)	
+	rxc := 0
+	job := 0	
 	if len(thisScan.NetDeets.PortList) <= 0 { // if no ports specified, use the default port list
 		thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
 	}
-	// TCP scan :: invoke section [TODO:MODULE->MOVE]
-	for _, port := range thisScan.NetDeets.PortList {
-		// need IP target-verify here and resolve name call if fail
-		target := getHostPortString(thisScan.Target.Addr, port) // TODO: Target Addr needs to be ip, use Target.IP instead
-		go tcpScan(target, &wg)                                 // fire all scans off concurrently
-		wg.Add(1)                                               // queue up one waitgroup per scan
+	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", thisScan.Target.Addr, len(thisScan.NetDeets.PortList))	
+	
+	for _, port := range thisScan.NetDeets.PortList {            // For all ports given, bang each one and report results 
+		target := getHostPortString(thisScan.Target.Addr, port)
+		fmt.Print("Queued: [", target, "] ## ")
+		go tcpPortBang(target, scanIpc, &job)               // Bang bang! Again, single host and port per call					
 	}
-	wg.Wait() // wait for the returns to finish
+	fmt.Printf("\nNetBang+Send END. Port jobs run: [%d]\n=====================================================", job)	
+	
 	// TCP scan done
+	// Channel receiver :: Get all job output and report
+	for i := 0; i < len(thisScan.NetDeets.PortList); i++ {
+		//for log := range scanIpc {
+			fmt.Printf("Jobs run: %d\r", job)
+			log := <- scanIpc  // hangs after 32 iterations with all data sent (65 msgs on default list). No deadlock. Figure it out
+			rxc++
+			fmt.Printf("\n #IPC RX count is %d :: scanReport len: %d cap: %d #\n",rxc, len(scanReport), cap(scanReport))
+			scanReport = append(scanReport, log)
+		}	
+	fmt.Println("ALERT: scanIpc channel close requested.")
+	close(scanIpc)
+	fmt.Println("ALERT: scanIpc channel closed.")
+	// 
+	printReport(scanReport)
 }
 
-/* tcpScan() takes a Dial target string [ipv4addr:portnum], scans that target, and adjusts the waitgroup counter */
-func tcpScan(t string, wg *sync.WaitGroup) {
-	conn, err := net.Dial("tcp", t)
-	pre := fmt.Sprintf("\ntcpScan [%s] ::\t", t) 
+/* 	
+tcpPortBang() 
+	--:: [BANG, AS IN .:|BANG|:. *FUCKIN NOISY*] ::--
+		Full 3-way TCP handshake
+		net.Dial seems to like retrying [SYN->] sometimes (!) after getting [<-RST,ACK] lol
+		
+	Hits given target:port and records response. 
+	Shoots results back through IPC channel.  
+*/
+func tcpPortBang(t string, ch chan string, job *int) {
+	*job++
+	joblog := fmt.Sprintf("[%s] -->\t", t)
+	conn, err := net.Dial("tcp", t) // TODO: add default max time wait to this + Make configurable
 	if err != nil {
-		fmt.Print(pre, err)
+		ch <- fmt.Sprint(joblog, err.Error())
+		fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
 	} else {
-		fmt.Print(pre, "SUCCESS")
-		conn.Close()	
+		defer conn.Close()
+		ch <- fmt.Sprint(joblog, "OPEN")
+		fmt.Printf("\n[%s]: Connected ok: open", t)
 	}
-	
-	wg.Done()
+}
+
+func printReport(ss []string) {
+	fmt.Printf("\n%s Scan Results\n================================================================================\n", thisScan.Target.Addr)
+	for _, result := range ss {
+		fmt.Printf("%s\n", result) 
+	}
+	fmt.Printf("\n%s Scan Complete\n================================================================================", thisScan.Target.Addr)
 }
