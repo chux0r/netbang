@@ -201,49 +201,61 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 		}
 	}
 	// TODO: TARGET VALIDATION CODE GOES HERE
-	thisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg should always be always the target hostname/addr
+	thisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
 }
 
 func main() {
+	bangPortList(thisScan.NetDeets.PortList, thisScan.Target.Addr)
+}
 
+/* 	
+bangPortList() 
+	INPUT: 	[]uint16 port list (can be empty)
+			protocol, TCP or UDP
+			target hostname or IP
+	PROCESSING
+			Launches concurrent port scans at a target host
+			Catches results strings via IPC channel receiver.
+	OUTPUT
+			Scan results data/report  
+*/
+func bangPortList(pl []uint16, t string) {
 	// TCP scan - For all ports given, scan single host and format results
-	// :: invoke section [TODO:MODULE->MOVE]
-	scanReport := make([]string, 0, len(thisScan.NetDeets.PortList)) // report of scan responses, usually by tcp/udp port number. Portlist len to avoid reslicing.
+	scanReport := make([]string, 0, len(pl)) // report of scan responses, usually by tcp/udp port number. Portlist len to avoid reslicing.
 	scanIpc := make(chan string)             // com pipe: raw, unordered host:port try response data or errors
-	printReport(scanReport)	
 	rxc := 0
 	job := 0	
-	if len(thisScan.NetDeets.PortList) <= 0 { // if no ports specified, use the default port list
-		thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
+	if len(pl) <= 0 {                        // if no ports specified, use short default common ports
+		pl = buildNamedPortsList("tcp_short")
 	}
-	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", thisScan.Target.Addr, len(thisScan.NetDeets.PortList))	
+	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", t, len(pl))	
 	
-	for _, port := range thisScan.NetDeets.PortList {            // For all ports given, bang each one and report results 
-		target := getHostPortString(thisScan.Target.Addr, port)
-		fmt.Print("Queued: [", target, "] ## ")
-		go tcpPortBang(target, scanIpc, &job)               // Bang bang! Again, single host and port per call					
+	for _, port := range pl {                // For all ports given, bang each one and report results 
+		target := getHostPortString(t, port)
+		go bangTcpPort(target, scanIpc, &job)// Bang bang! Again, single host and port per call					
 	}
-	fmt.Printf("\nNetBang+Send END. Port jobs run: [%d]\n=====================================================", job)	
+	fmt.Println("\nNetBang jobs, running...")	
 	
 	// TCP scan done
 	// Channel receiver :: Get all job output and report
-	for i := 0; i < len(thisScan.NetDeets.PortList); i++ {
+	for i := 0; i < len(pl); i++ {
 		//for log := range scanIpc {
-			fmt.Printf("Jobs run: %d\r", job)
-			log := <- scanIpc  // hangs after 32 iterations with all data sent (65 msgs on default list). No deadlock. Figure it out
+			//fmt.Printf("Jobs run: %d\r", job)
+			log := <- scanIpc  
 			rxc++
-			fmt.Printf("\n #IPC RX count is %d :: scanReport len: %d cap: %d #\n",rxc, len(scanReport), cap(scanReport))
+			//fmt.Printf("\n #IPC RX count is %d :: scanReport len: %d cap: %d #\n",rxc, len(scanReport), cap(scanReport))
 			scanReport = append(scanReport, log)
 		}	
-	fmt.Println("ALERT: scanIpc channel close requested.")
+	fmt.Printf("\nJobs run: %d", job)
+	fmt.Printf("\nRecv'd job logs: %d.", rxc)
 	close(scanIpc)
-	fmt.Println("ALERT: scanIpc channel closed.")
+	//fmt.Println("ALERT: scanIpc channel closed.")
 	// 
 	printReport(scanReport)
 }
 
 /* 	
-tcpPortBang() 
+bangTcpPort() 
 	--:: [BANG, AS IN .:|BANG|:. *FUCKIN NOISY*] ::--
 		Full 3-way TCP handshake
 		net.Dial seems to like retrying [SYN->] sometimes (!) after getting [<-RST,ACK] lol
@@ -251,17 +263,19 @@ tcpPortBang()
 	Hits given target:port and records response. 
 	Shoots results back through IPC channel.  
 */
-func tcpPortBang(t string, ch chan string, job *int) {
+func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
 	conn, err := net.Dial("tcp", t) // TODO: add default max time wait to this + Make configurable
 	if err != nil {
-		ch <- fmt.Sprint(joblog, err.Error())
-		fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
+		fmt.Printf("💀")
+		ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+		//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
 	} else {
 		defer conn.Close()
-		ch <- fmt.Sprint(joblog, "OPEN")
-		fmt.Printf("\n[%s]: Connected ok: open", t)
+		fmt.Print("😎")
+		ch <- fmt.Sprint(joblog, "[😎] OPEN")
+		//fmt.Printf("\n[%s]: Connected ok: open", t)
 	}
 }
 
@@ -270,5 +284,4 @@ func printReport(ss []string) {
 	for _, result := range ss {
 		fmt.Printf("%s\n", result) 
 	}
-	fmt.Printf("\n%s Scan Complete\n================================================================================", thisScan.Target.Addr)
 }
