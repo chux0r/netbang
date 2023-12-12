@@ -1,6 +1,7 @@
 # netbang
 
-Scrappy network interrogator and wringer-outer, written in Go. Result of wondering aloud how much advantage Go's concurrency might give for network scanning of all kinds. Might try true multithreading next, but getting some mileage out of the cheap thing first.
+Scrappy network interrogator and wringer-outer, written in Go. Result of wondering aloud how much advantage Go's concurrency might give for network scanning of all kinds. Might try true multithreading next, but getting some mileage out of the cheap thing first.    
+    
 **Secondary goal:** *Build features in current-challenge context: networks with vanishingly few realistic limits anymore; IPv6; increasingly so many things, you can't realistically plan to scan just every-fuckin-thing A-Z anymore. We'll never have the time.*    
 **Tertiary goal:** Use this as an opportunity to explore and decide what value, if any, scanning might still hold. And what changes should be made if it does happen to still be useful?   
      
