@@ -1,6 +1,6 @@
 /******************************************************************************
-* netscanx
-* (net-SKANKZ)
+* netBang
+*
 *
 * Scrappy network scanner written in Go, mostly to answer what boost Go
 * concurrency gives. Also, fun to see how far I can get network-features-wise.
@@ -14,6 +14,9 @@
 * 14AUG2023
 * CT Geigner ("chux0r")
 *
+* 12DEC2023 - Renamed to "netBang", due to the fact that it's at this time a
+* noisy scanner. It is pretty fast though so there's that. I'll work on the
+* stealthy bits soon enough. --ctg
 *
 * Things to ponder, improve, solve
 * ------------------------------------------------------
@@ -25,14 +28,13 @@
 *
 * Next features hit-list:
 * ------------------------------------------------------
-* Better report/output mech/structure
 * UDP scanning (DialUDP)
 * Recon using Shodan data
 * Connect() Flags scan configurations (TCP half open, Xmas, etc)
 * Improved error processing/context-adding/reporting
 *
-* "Nice to have"
-* ______________________________________________________
+* Ideas! Fun to watch 'em rot in a pile. Amazing when I actually implement!
+* =============================================================================
 * Multicast fun
 * BGP fun
 * DNS fun
