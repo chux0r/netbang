@@ -53,6 +53,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 )
 
 type NetSpec struct {
@@ -96,20 +97,21 @@ func init() {
 	// TODO: complete flags/options commented out below:
 	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
 	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
-	helpDo     := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
-	helpDo2    := flag.Bool("help", false, "Same as \"-h\", above.")
-	listsDo    := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
-	listsDo2   := flag.Bool("lists", false, "Same as \"-l\", above.")
-	portsDo    := flag.Bool("ports", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
-	//protoDo    := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	dnsrvDo    := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
-	/* 
-	verboseDo  := flag.Bool("v", false, "Verbose runtime output")
-	verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
-	verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
-	verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
+	helpDo := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
+	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
+	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
+	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
+	portsDo := flag.Bool("p", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
+	portsDo2 := flag.Bool("ports", false, "Same as \"-p\", above.")
+	protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	/*
+		verboseDo  := flag.Bool("v", false, "Verbose runtime output")
+		verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
+		verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
+		verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
 	*/
-	
+
 	flag.Parse()
 
 	// HELP MENU
@@ -124,9 +126,12 @@ netscanx [-l|--lists] [<Listname>]
 
 netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 	FLAGS
-		[--ports] <num0(,num1,num2,...numN,named_list)> 
+		[-p|--ports] <num0(,num1,num2,...numN,named_list)> 
 		Specify port, ports, and/or named portlists to use. TCP or UDP proto only. 
-		(Portlists listed in --lists)
+		(View portlists with --lists)
+
+		[--proto] <tcp|udp>
+		Specify scanning protocol, tcp, udp, or icmp. Default is "tcp".
 		
 		[--resolver] <ipaddr> 
 		DNS resolver to use. Default is to use your system's local resolver.
@@ -136,18 +141,16 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 		hostname.
 	
 `)
-	/* On tap, but not ready yet --ctg
-	
-	
-	[--dryrun] 
-		Print activities list, pre-validate targets, print config and pre-conditions. 
-		Dry-run does NOT execute the scan.
-	[--proto] <protocol> 
-		Specify scanning protocol, tcp, udp, or icmp. Default is "tcp".
-		
-	[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)> 
-		Specify activity(s): scan, tcpscan, udpscan, or dnsinfo. Default is "scan". */
-		
+		/* On tap, but not ready yet --ctg
+
+
+		[--dryrun]
+			Print activities list, pre-validate targets, print config and pre-conditions.
+			Dry-run does NOT execute the scan.
+
+		[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)>
+			Specify activity(s): scan, tcpscan, udpscan, or dnsinfo. Default is "scan". */
+
 		os.Exit(0)
 	} else if *listsDo != false || *listsDo2 != false {
 		if flag.Arg(0) == "" {
@@ -158,7 +161,7 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 		os.Exit(0)
 	}
 	//if protoDo {}
-	if *portsDo {
+	if *portsDo || *portsDo2 {
 		if flag.Arg(0) == "" {
 			fmt.Print("Error: No ports listed! You must list at least one port to use after \"--ports\".")
 			os.Exit(1)
@@ -184,17 +187,29 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 			}
 		}
 	}
-	/*
-	if *doDo {
+	// thisScan.NetDeets.Protocol = "tcp" **default-set in scanConstructor**
+	if *protoDo {
 		if flag.Arg(0) == "" {
-			fmt.Print("Error: You must specify which netscanx activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
-			os.Exit(1)
+			fmt.Print("\nWarning: No protocol listed with --proto! Using \"tcp\".")
+		} else {
+			thisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
+			if thisScan.NetDeets.Protocol != "tcp" && thisScan.NetDeets.Protocol != "udp" {
+				fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0))
+				os.Exit(1)
+			}
 		}
 	}
+	/*
+		if *doDo {
+			if flag.Arg(0) == "" {
+				fmt.Print("Error: You must specify which netscanx activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
+				os.Exit(1)
+			}
+		}
 	*/
 	if *dnsrvDo {
 		if flag.Arg(0) == "" {
-			fmt.Print("Error: You must specify the IP of a DNS server to use with \"--resolver\".")
+			fmt.Print("\nError: You must specify the IP of a DNS server to use with \"--resolver\".")
 			os.Exit(1)
 		} else {
 			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
@@ -205,11 +220,12 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 }
 
 func main() {
-	bangPortList(thisScan.NetDeets.PortList, thisScan.Target.Addr)
+	bangHost(thisScan.NetDeets.PortList, thisScan.Target.Addr, thisScan.NetDeets.Protocol)
 }
 
-/* 	
-bangPortList() 
+/*
+bangHost()
+
 	INPUT: 	[]uint16 port list (can be empty)
 			protocol, TCP or UDP
 			target hostname or IP
@@ -217,51 +233,61 @@ bangPortList()
 			Launches concurrent port scans at a target host
 			Catches results strings via IPC channel receiver.
 	OUTPUT
-			Scan results data/report  
+			Scan results data/report
 */
-func bangPortList(pl []uint16, t string) {
+func bangHost(pl []uint16, host string, proto string) {
 	// TCP scan - For all ports given, scan single host and format results
 	scanReport := make([]string, 0, len(pl)) // report of scan responses, usually by tcp/udp port number. Portlist len to avoid reslicing.
 	scanIpc := make(chan string)             // com pipe: raw, unordered host:port try response data or errors
 	rxc := 0
-	job := 0	
-	if len(pl) <= 0 {                        // if no ports specified, use short default common ports
-		pl = buildNamedPortsList("tcp_short")
+	job := 0
+	if len(pl) <= 0 { // if no ports specified, use short default common ports
+		if proto == "tcp" {
+			pl = buildNamedPortsList("tcp_short")
+		} else if proto == "udp" {
+			pl = buildNamedPortsList("udp_short")
+		} else {
+			fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", proto)
+			os.Exit(1)
+		}
 	}
-	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", t, len(pl))	
-	
-	for _, port := range pl {                // For all ports given, bang each one and report results 
-		target := getHostPortString(t, port)
-		go bangTcpPort(target, scanIpc, &job)// Bang bang! Again, single host and port per call					
+	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", host, len(pl))
+
+	for _, port := range pl { // For all ports given, bang each one and report results
+		hp := getHostPortString(host, port)
+		if proto == "tcp" {
+			go bangTcpPort(hp, scanIpc, &job) // Bang bang! Single host:port per call
+		} else if proto == "udp" {
+			//go bangUdpPort(hp, scanIpc, &job)
+		} else {
+			fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", proto)
+			os.Exit(1)
+		}
 	}
-	fmt.Println("\nNetBang jobs, running...")	
-	
-	// TCP scan done
-	// Channel receiver :: Get all job output and report
+	fmt.Println("\nNetBang jobs, running...")
+
+	// Channel receiver :: Get all concurrent scan job output and report
 	for i := 0; i < len(pl); i++ {
 		//for log := range scanIpc {
-			//fmt.Printf("Jobs run: %d\r", job)
-			log := <- scanIpc  
-			rxc++
-			//fmt.Printf("\n #IPC RX count is %d :: scanReport len: %d cap: %d #\n",rxc, len(scanReport), cap(scanReport))
-			scanReport = append(scanReport, log)
-		}	
+		log := <-scanIpc
+		rxc++
+		scanReport = append(scanReport, log)
+	}
 	fmt.Printf("\nJobs run: %d", job)
 	fmt.Printf("\nRecv'd job logs: %d.", rxc)
 	close(scanIpc)
-	//fmt.Println("ALERT: scanIpc channel closed.")
-	// 
 	printReport(scanReport)
 }
 
-/* 	
-bangTcpPort() 
+/*
+bangTcpPort()
+
 	--:: [BANG, AS IN .:|BANG|:. *FUCKIN NOISY*] ::--
 		Full 3-way TCP handshake
 		net.Dial seems to like retrying [SYN->] sometimes (!) after getting [<-RST,ACK] lol
-		
-	Hits given target:port and records response. 
-	Shoots results back through IPC channel.  
+
+	Hits given target:port and records response.
+	Shoots results back through IPC channel.
 */
 func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
@@ -282,6 +308,6 @@ func bangTcpPort(t string, ch chan string, job *int) {
 func printReport(ss []string) {
 	fmt.Printf("\n%s Scan Results\n================================================================================\n", thisScan.Target.Addr)
 	for _, result := range ss {
-		fmt.Printf("%s\n", result) 
+		fmt.Printf("%s\n", result)
 	}
 }
