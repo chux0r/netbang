@@ -313,6 +313,7 @@ bangUdpPort()
 	Shoots results back through IPC channel.
 */
 func bangUdpPort(t string, ch chan string, job *int) {
+	rcvbuf := make([]byte, 1024)
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
 	udpaddr, err := net.ResolveUDPAddr("udp", t)
@@ -323,9 +324,20 @@ func bangUdpPort(t string, ch chan string, job *int) {
 		//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
 	} else {
 		defer conn.Close()
-		fmt.Print("😎")
-		ch <- fmt.Sprint(joblog, "[😎] OPEN")
-		//fmt.Printf("\n[%s]: Connected ok: open", t)
+		_, err = conn.Write([]byte("loludp"))
+		if err != nil {
+			fmt.Printf("💀")
+			ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+		} else {
+			_, err = conn.Read(rcvbuf)
+			if err != nil {
+				fmt.Printf("💀")
+				ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+			} else {
+				fmt.Print("😎")
+				ch <- fmt.Sprint(joblog, "[😎] OPEN")
+			}
+		}
 	}
 }
 
