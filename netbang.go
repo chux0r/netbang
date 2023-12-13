@@ -258,7 +258,7 @@ func bangHost(pl []uint16, host string, proto string) {
 		if proto == "tcp" {
 			go bangTcpPort(hp, scanIpc, &job) // Bang bang! Single host:port per call
 		} else if proto == "udp" {
-			//go bangUdpPort(hp, scanIpc, &job)
+			go bangUdpPort(hp, scanIpc, &job)
 		} else {
 			fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", proto)
 			os.Exit(1)
@@ -293,6 +293,30 @@ func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
 	conn, err := net.Dial("tcp", t) // TODO: add default max time wait to this + Make configurable
+	if err != nil {
+		fmt.Printf("💀")
+		ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+		//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
+	} else {
+		defer conn.Close()
+		fmt.Print("😎")
+		ch <- fmt.Sprint(joblog, "[😎] OPEN")
+		//fmt.Printf("\n[%s]: Connected ok: open", t)
+	}
+}
+
+/*
+bangUdpPort()
+
+	What. Isup. With Datagrams, amirite?
+	Hits given UDP target:port and records response.
+	Shoots results back through IPC channel.
+*/
+func bangUdpPort(t string, ch chan string, job *int) {
+	*job++
+	joblog := fmt.Sprintf("[%s] -->\t", t)
+	udpaddr, err := net.ResolveUDPAddr("udp", t)
+	conn, err := net.DialUDP("udp", nil, udpaddr) // TODO: add default max time wait to this + Make configurable
 	if err != nil {
 		fmt.Printf("💀")
 		ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
