@@ -21,10 +21,12 @@
 * Things to ponder, improve, solve
 * ------------------------------------------------------
 * net.Dial() is pretty ok, but it abstracts lots of stuff I'd like to monitor
-* or even change. Right now, I don't know if the connection error strings are
-* coming from some golang tcp errno lib or if they come from my OS. I'm stuck
-* with a full-3-way TCP handshake since there's no controlling the connection
-* or the flags or anything like that.
+* or even change. Anywho, I'm stuck with a full-3-way TCP handshake since
+* there's no controlling the connection or the flags or anything like that.
+* NOTE: I did figure out, as I suspected, that the network error messages are
+* coming from the stack in the OS, and are dependent in that way. I still want
+* to parse them to do some interpretation and output to the users, but might
+* have to do so in OS-specific add-ins.
 *
 * Next features hit-list:
 * ------------------------------------------------------
@@ -197,10 +199,10 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
 		thisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
-			log.Print("\nWarning: Ports given with both -p and --ports. Combining.")
+			log.Print("Warning: Ports given with both -p and --ports. Combining.")
 		}
 		if len(*portsfileDo) > 0 && len(*portsfileDo2) > 0 { // -pf --portsfile <filename>
-			log.Print("\nWarning: Multiple input files given with both -pf and --portsfile. Combining.")
+			log.Print("Warning: Multiple input files given with both -pf and --portsfile. Combining.")
 		}
 		if len(*portsDo) > 0 { // ifdef -p
 			doPortsFinal(*portsDo)
@@ -209,18 +211,18 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 			doPortsFinal(*portsDo2)
 		}
 		if len(*portsfileDo) > 0 { // ifdef -pf read given user port config file
-			log.Printf("\nOpening user-defined port config file [%s].", *portsfileDo)
+			log.Printf("Opening user-defined port config file [%s].", *portsfileDo)
 			pconf, err := os.Open(*portsfileDo)
 			p := make([]byte, 4096)
 			if err != nil {
-				log.Fatalf("\nError opening file [%s]: [%s]. Exiting", *portsfileDo, err.Error())
+				log.Fatalf("Error opening file [%s]: [%s]. Exiting", *portsfileDo, err.Error())
 			}
 			defer pconf.Close()
 			fsize, err := pconf.Read(p)
 			if err != nil {
-				log.Fatalf("\nError reading file: [%s]. Exiting", *portsfileDo)
+				log.Fatalf("Error reading file: [%s]. Exiting", *portsfileDo)
 			}
-			p = p[:fsize] // trim this buffer to the size of the infile afterwards or well have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
+			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
 			fmt.Printf("\nData read from cf file: [%s]", string(p))
 			doPortsFinal(string(p))
 		}
@@ -228,12 +230,11 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 
 	if *protoDo {
 		if flag.Arg(0) == "" {
-			fmt.Print("\nWarning: No protocol listed with --proto! Using \"tcp\".")
+			fmt.Print("\nWarning: No protocol listed with --proto. Using \"tcp\".")
 		} else {
 			thisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
 			if thisScan.NetDeets.Protocol != "tcp" && thisScan.NetDeets.Protocol != "udp" {
-				fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0))
-				os.Exit(1)
+				log.Fatalf("Error: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0))
 			}
 		}
 	}
@@ -247,8 +248,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	*/
 	if *dnsrvDo {
 		if flag.Arg(0) == "" {
-			fmt.Print("\nError: You must specify the IP of a DNS server to use with \"--resolver\".")
-			os.Exit(1)
+			log.Fatal("Error: You must specify the IP of a DNS server to use with \"--resolver\".")
 		} else {
 			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
 		}
@@ -285,11 +285,11 @@ func bangHost(pl []uint16, host string, proto string) {
 		} else if proto == "udp" {
 			pl = buildNamedPortsList("udp_short")
 		} else {
-			fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", proto)
+			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 			os.Exit(1)
 		}
 	}
-	fmt.Printf("NetBang START. Host [%s], Portcount: [%d]\n=====================================================", host, len(pl))
+	fmt.Printf("\nBangHost: [%s], Portcount: [%d]\n=====================================================", host, len(pl))
 
 	for _, port := range pl { // For all ports given, bang each one and report results
 		hp := getHostPortString(host, port)
@@ -298,11 +298,10 @@ func bangHost(pl []uint16, host string, proto string) {
 		} else if proto == "udp" {
 			go bangUdpPort(hp, scanIpc, &job)
 		} else {
-			fmt.Printf("\nError: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", proto)
-			os.Exit(1)
+			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 		}
 	}
-	fmt.Println("\nNetBang jobs, running...")
+	fmt.Println("\nPortBangers running...")
 
 	// Channel receiver :: Get all concurrent scan job output and report
 	for i := 0; i < len(pl); i++ {
@@ -311,8 +310,8 @@ func bangHost(pl []uint16, host string, proto string) {
 		rxc++
 		scanReport = append(scanReport, log)
 	}
-	fmt.Printf("\nJobs run: %d", job)
-	fmt.Printf("\nRecv'd job logs: %d.", rxc)
+	fmt.Printf("\nJobs run: %d", job) //TEST
+	//fmt.Printf("\nRecv'd job logs: %d.", rxc) //TEST
 	close(scanIpc)
 	printReport(scanReport)
 }
@@ -380,8 +379,8 @@ func bangUdpPort(t string, ch chan string, job *int) {
 }
 
 func printReport(ss []string) {
-	fmt.Printf("\n%s Scan Results\n================================================================================\n", thisScan.Target.Addr)
+	fmt.Printf("\n%s Scan Results\n================================================================================", thisScan.Target.Addr)
 	for _, result := range ss {
-		fmt.Printf("%s\n", result)
+		fmt.Printf("\n%s", result)
 	}
 }

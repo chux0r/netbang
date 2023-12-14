@@ -120,34 +120,32 @@ runes. Returns ports as []uint16, any named port lists as []string.
 func parsePortsCdl(s string) ([]uint16, []string) {
 	var r1 []string
 	var r2 []uint16
-	fmt.Println("\nParsePortsCDL input string: ", s)
+	// fmt.Println("\nParsePortsCDL input string: ", s) TEST
 	list := strings.Split(s, ",")
 	for _, item := range list { // Eval each list item
-		item = strings.TrimSpace(item)        // be nice and trim it up, just in case
-		fmt.Println("\nItem: ", []byte(item)) //TEST
+		item = strings.TrimSpace(item) // be nice and trim it up, just in case
+		// fmt.Println("\nItem: ", []byte(item)) //TEST
 		num := false
 		var tot int32 = 0
 		itlen := len([]rune(item))
 		for i := itlen - 1; i >= 0; i-- { // walk the chars
 			char := item[i]
 			if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
-				fmt.Printf("Illegal char! c[0x%x] d[%d]", char, int32(char)-48)
+				//fmt.Printf("Illegal char! c[0x%x] d[%d]", char, int32(char)-48) TEST
 				num = false
 				break // if NaN, break out
 			} else { // Numeric; convert and calc
 				num = true
-				var mlt int32 = 1                  // multiplier, to rebuild our port num piece by piece``
-				fmt.Printf("Num char is %c", char) // TEST
-				if char != '0' {                   // only when we have a non zero num to compute
-					digit := itlen - 1 - i // len-1-i is most signif. digit L->R
-					//if digit > 0 {
+				var mlt int32 = 1 // multiplier, to rebuild our port num piece by piece``
+				// fmt.Printf("Num char is %c", char) // TEST
+				if char != '0' { // only when we have a non zero num to compute
+					digit := itlen - 1 - i       // len-1-i is most signif. digit L->R
 					for j := digit; j > 0; j-- { // computationally less expensive than using math.Pow10 and float64s :)
 						mlt = mlt * 10
 					}
-					//}
-					fmt.Printf(" times %d (x10^%d)", mlt, digit)
+					// fmt.Printf(" times %d (x10^%d)", mlt, digit) TEST
 					tot = tot + (int32(char)-48)*mlt
-					fmt.Printf(", totaling %d\n", tot)
+					// fmt.Printf(", totaling %d\n", tot)
 				}
 			}
 		}
@@ -157,7 +155,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 			r2 = append(r2, uint16(tot))
 		}
 	}
-	fmt.Println("\nStrings slice: ", r1) // TEST
-	fmt.Println("\nuint16 slice: ", r2)  // TEST
+	// fmt.Println("\nStrings slice: ", r1) // TEST
+	// fmt.Println("\nuint16 slice: ", r2)  // TEST
 	return r2, r1
 }
