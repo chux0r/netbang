@@ -13,6 +13,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -48,7 +49,7 @@ func buildNamedPortsList(sp string) []uint16 {
 	case "udp_short":
 		return uS
 	default:
-		return []uint16{0} // zero is the error condition
+		return nil // error condition
 	}
 }
 
@@ -56,7 +57,7 @@ func buildNamedPortsList(sp string) []uint16 {
 *****************************************************************************
 getHostPortString()
 
-Returns a "host:port" target string usable by net.Dial()
+Returns a "host:port" target string usable by net.Dial() and resolveUDPAddr()
 *****************************************************************************
 */
 func getHostPortString(t string, p uint16) string {
@@ -66,18 +67,43 @@ func getHostPortString(t string, p uint16) string {
 
 /*
 *****************************************************************************
-buildPortsList()
+addPortsToPortsList()
 
-Build a slice of []uint16 to plug into NetSpec.Portlist
+Add a slice of []uint16 to NetDeets.Portlist
 *****************************************************************************
 */
-func buildPortsList(a []uint16) {
+func addPortsToPortsList(a []uint16) {
 
 	tmp := thisScan.NetDeets.PortList
-	thisScan.NetDeets.PortList = make([]uint16, len(tmp)+len(a), len(tmp)+len(a)+32) //stretch it out to size +32
+	// the LEN should not be > 0? I think I did this wrong. Try setting len to zero, but capacity to len.tmp+len.a+32 // thisScan.NetDeets.PortList = make([]uint16, len(tmp)+len(a), len(tmp)+len(a)+32)
+	thisScan.NetDeets.PortList = make([]uint16, 0, len(tmp)+len(a)) //stretch capacity out to total size
 	copy(thisScan.NetDeets.PortList, tmp)
 	thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, a...)
 
+}
+
+/*
+*******************************************************************************
+doPortsFinal()
+
+take user-defined data string, parse and convert numbers, identify named lists,
+then append all to Netdeets.Portlist
+*******************************************************************************
+*/
+func doPortsFinal(udd string) {
+	p, pl := parsePortsCdl(udd) // convert port strings to uint16; separate port numbers (p) from named lists (pl)
+	addPortsToPortsList(p)
+	if len(pl) > 0 { // if we have named lists...
+		for i := 0; i < len(pl); i++ { // ...parse each...
+			// resize the portlist appropriately and reassemble
+			newports := buildNamedPortsList(pl[i]) // ...into a []uint16 slice...
+			if newports != nil {                   // ...and if each is valid...
+				addPortsToPortsList(newports) // ...add to master list
+			} else {
+				log.Fatalf("Error: Undefined list given: \"%s\"", pl[i])
+			}
+		}
+	}
 }
 
 /*
@@ -94,24 +120,25 @@ runes. Returns ports as []uint16, any named port lists as []string.
 func parsePortsCdl(s string) ([]uint16, []string) {
 	var r1 []string
 	var r2 []uint16
-	fmt.Println("ParsePortsCDL input string: ", s)
+	fmt.Println("\nParsePortsCDL input string: ", s)
 	list := strings.Split(s, ",")
 	for _, item := range list { // Eval each list item
-		item = strings.TrimSpace(item) // be nice and trim it up, just in case
-		fmt.Println("\nItem:", item)   //TEST
+		item = strings.TrimSpace(item)        // be nice and trim it up, just in case
+		fmt.Println("\nItem: ", []byte(item)) //TEST
 		num := false
 		var tot int32 = 0
 		itlen := len([]rune(item))
 		for i := itlen - 1; i >= 0; i-- { // walk the chars
 			char := item[i]
 			if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
+				fmt.Printf("Illegal char! c[0x%x] d[%d]", char, int32(char)-48)
 				num = false
 				break // if NaN, break out
 			} else { // Numeric; convert and calc
 				num = true
-				var mlt int32 = 1                         // multiplier, to rebuild our port num piece by piece``
-				fmt.Printf("\nNum character is %c", char) // TEST
-				if char != '0' {                          // only when we have a non zero num to compute
+				var mlt int32 = 1                  // multiplier, to rebuild our port num piece by piece``
+				fmt.Printf("Num char is %c", char) // TEST
+				if char != '0' {                   // only when we have a non zero num to compute
 					digit := itlen - 1 - i // len-1-i is most signif. digit L->R
 					//if digit > 0 {
 					for j := digit; j > 0; j-- { // computationally less expensive than using math.Pow10 and float64s :)
@@ -120,7 +147,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 					//}
 					fmt.Printf(" times %d (x10^%d)", mlt, digit)
 					tot = tot + (int32(char)-48)*mlt
-					fmt.Printf(", totaling %d", tot)
+					fmt.Printf(", totaling %d\n", tot)
 				}
 			}
 		}
@@ -130,7 +157,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 			r2 = append(r2, uint16(tot))
 		}
 	}
-	fmt.Println("Strings slice: ", r1) // TEST
-	fmt.Println("uint16 slice: ", r2)  // TEST
+	fmt.Println("\nStrings slice: ", r1) // TEST
+	fmt.Println("\nuint16 slice: ", r2)  // TEST
 	return r2, r1
 }

@@ -51,6 +51,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strings"
@@ -101,8 +102,10 @@ func init() {
 	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
 	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
 	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
-	portsDo := flag.Bool("p", false, "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
-	portsDo2 := flag.Bool("ports", false, "Same as \"-p\", above.")
+	portsDo := flag.String("p", "", "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
+	portsDo2 := flag.String("ports", "", "Same as \"-p\", above.")
+	portsfileDo := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
+	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
 	protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
 	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
 	/*
@@ -119,16 +122,19 @@ func init() {
 		fmt.Print(
 			`
 USAGE:
-netscanx [-h|--help]
+netbang [-h|--help]
 	Print this help screen
-netscanx [-l|--lists] [<Listname>] 
+netbang [-l|--lists] [<Listname>] 
 	Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing for <Listname>. 
 
-netscanx [[FLAGS] <object(,optionals)>] <TARGET>
+netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	FLAGS
 		[-p|--ports] <num0(,num1,num2,...numN,named_list)> 
-		Specify port, ports, and/or named portlists to use. TCP or UDP proto only. 
-		(View portlists with --lists)
+		Specify port, ports, and/or named portlists to use in a scan. TCP or UDP proto only. 
+		(View named portlists with --lists)
+
+		[-pf|--portsfile] <(directory path/)filename>
+		Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
 
 		[--proto] <tcp|udp>
 		Specify scanning protocol, tcp, udp, or icmp. Default is "tcp".
@@ -142,7 +148,6 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 	
 `)
 		/* On tap, but not ready yet --ctg
-
 
 		[--dryrun]
 			Print activities list, pre-validate targets, print config and pre-conditions.
@@ -160,34 +165,67 @@ netscanx [[FLAGS] <object(,optionals)>] <TARGET>
 		}
 		os.Exit(0)
 	}
-	//if protoDo {}
-	if *portsDo || *portsDo2 {
-		if flag.Arg(0) == "" {
-			fmt.Print("Error: No ports listed! You must list at least one port to use after \"--ports\".")
-			os.Exit(1)
-		} else {
-			thisScan.NetDeets.PortList = []uint16{}                     // clear the defaults
-			pargs := flag.Arg(0)                                        // gather user-spec'd ports
-			p, pl := parsePortsCdl(pargs)                               // TODO: create func that assembles final []uint16 port list from spec
-			fmt.Println("Ports specified: ", p, "List specified: ", pl) // TEST/TODO: remove when port assembler complete
-			if len(pl) > 0 {                                            // if we have named lists...
-				for i := 0; i < len(pl); i++ {
-					// resize the portlist appropriately and reassemble
-					ts1 := thisScan.NetDeets.PortList
-					ts2 := buildNamedPortsList(pl[i])
-					thisScan.NetDeets.PortList = make([]uint16, len(ts1)+len(ts2), len(ts1)+len(ts2)+32)
-					copy(thisScan.NetDeets.PortList, ts1)
-					thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ts2...)
+
+	/*
+		if *portsDo || *portsDo2  {
+			if flag.Arg(0) == "" {
+				fmt.Print("Error: No ports listed! You must list at least one port number with \"--ports\".")
+				os.Exit(1)
+			} else {
+				thisScan.NetDeets.PortList = []uint16{}                     // clear the defaults
+				pargs := flag.Arg(0)                                        // gather user-spec'd ports
+				p, pl := parsePortsCdl(pargs)                               // TODO: create func that assembles final []uint16 port list from spec
+				fmt.Println("Ports specified: ", p, "List specified: ", pl) // TEST/TODO: remove when port assembler complete
+				if len(pl) > 0 {                                            // if we have named lists...
+					for i := 0; i < len(pl); i++ {
+						// resize the portlist appropriately and reassemble
+						ts1 := thisScan.NetDeets.PortList
+						ts2 := buildNamedPortsList(pl[i])
+						thisScan.NetDeets.PortList = make([]uint16, len(ts1)+len(ts2), len(ts1)+len(ts2)+32)
+						copy(thisScan.NetDeets.PortList, ts1)
+						thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ts2...)
+					}
 				}
-			}
-			if len(p) > 0 {
-				for _, ptmp := range p {
-					thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ptmp)
+				if len(p) > 0 {
+					for _, ptmp := range p {
+						thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ptmp)
+					}
 				}
 			}
 		}
+	*/
+	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
+		thisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
+		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
+			log.Print("\nWarning: Ports given with both -p and --ports. Combining.")
+		}
+		if len(*portsfileDo) > 0 && len(*portsfileDo2) > 0 { // -pf --portsfile <filename>
+			log.Print("\nWarning: Multiple input files given with both -pf and --portsfile. Combining.")
+		}
+		if len(*portsDo) > 0 { // ifdef -p
+			doPortsFinal(*portsDo)
+		}
+		if len(*portsDo2) > 0 { // ifdef -ports
+			doPortsFinal(*portsDo2)
+		}
+		if len(*portsfileDo) > 0 { // ifdef -pf read given user port config file
+			log.Printf("\nOpening user-defined port config file [%s].", *portsfileDo)
+			pconf, err := os.Open(*portsfileDo)
+			p := make([]byte, 4096)
+			if err != nil {
+				log.Fatalf("\nError opening file [%s]: [%s]. Exiting", *portsfileDo, err.Error())
+			}
+			defer pconf.Close()
+			fsize, err := pconf.Read(p)
+			if err != nil {
+				log.Fatalf("\nError reading file: [%s]. Exiting", *portsfileDo)
+			}
+			p = p[:fsize] // trim this buffer to the size of the infile afterwards or well have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
+			fmt.Printf("\nData read from cf file: [%s]", string(p))
+			doPortsFinal(string(p))
+		}
 	}
-	// thisScan.NetDeets.Protocol = "tcp" **default-set in scanConstructor**
+
 	if *protoDo {
 		if flag.Arg(0) == "" {
 			fmt.Print("\nWarning: No protocol listed with --proto! Using \"tcp\".")
