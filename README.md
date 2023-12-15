@@ -6,6 +6,9 @@ Scrappy network interrogator and wringer-outer, written in Go. Result of wonderi
 **Tertiary goal:** Use this as an opportunity to explore and decide what value, if any, scanning might still hold. And what changes should be made if it does happen to still be useful?   
      
 Just rethinking possibilities and features as I go; not to mention interesting features mashup, foo breakage for fun and profit, other creative/educational mayhem. How many network layers can we make this thing blow apart and report upon?   
+
+Env: go version go1.20.7 linux/amd64
+Build using: "go build netbang.go portscan.go resolver.go" 
    
 **AUTHOR: Chuck Geigner a.k.a. "mongoose", a.k.a. "chux0r"**   
    

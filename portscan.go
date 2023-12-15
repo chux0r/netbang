@@ -111,51 +111,84 @@ func doPortsFinal(udd string) {
 parsePortsCdl()
 
 Parses the comma-delimited string passed in by the user, using the --ports
-flag. Since the user can specify either numbers or port list names, the func
-must detect item type 1st, then perform validation. In the case of port
-numbers, since we bring everything as string data, there is some fun converting
-runes. Returns ports as []uint16, any named port lists as []string.
+flag. Since the user can specify either numbers or port list names, uses
+numStringToInt32() to extract portnumbers in usable numeric form, and flags
+when the value in the list is not a number.
+Returns ports as []uint16, any (assumed) named port lists as []string.
 *****************************************************************************
 */
 func parsePortsCdl(s string) ([]uint16, []string) {
 	var r1 []string
 	var r2 []uint16
+	var port int32
+	var isnum bool
 	// fmt.Println("\nParsePortsCDL input string: ", s) TEST
 	list := strings.Split(s, ",")
 	for _, item := range list { // Eval each list item
-		item = strings.TrimSpace(item) // be nice and trim it up, just in case
-		// fmt.Println("\nItem: ", []byte(item)) //TEST
-		num := false
-		var tot int32 = 0
-		itlen := len([]rune(item))
-		for i := itlen - 1; i >= 0; i-- { // walk the chars
-			char := item[i]
-			if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
-				//fmt.Printf("Illegal char! c[0x%x] d[%d]", char, int32(char)-48) TEST
-				num = false
-				break // if NaN, break out
-			} else { // Numeric; convert and calc
-				num = true
-				var mlt int32 = 1 // multiplier, to rebuild our port num piece by piece``
-				// fmt.Printf("Num char is %c", char) // TEST
-				if char != '0' { // only when we have a non zero num to compute
-					digit := itlen - 1 - i       // len-1-i is most signif. digit L->R
-					for j := digit; j > 0; j-- { // computationally less expensive than using math.Pow10 and float64s :)
-						mlt = mlt * 10
-					}
-					// fmt.Printf(" times %d (x10^%d)", mlt, digit) TEST
-					tot = tot + (int32(char)-48)*mlt
-					// fmt.Printf(", totaling %d\n", tot)
-				}
-			}
-		}
-		if num == false { // put the name in the list of names
+		port, isnum = numStringToInt32(item)
+		if isnum == false { // put the name in the list of names
 			r1 = append(r1, item)
 		} else { // put the port in the list of ports
-			r2 = append(r2, uint16(tot))
+			r2 = append(r2, uint16(port))
 		}
 	}
 	// fmt.Println("\nStrings slice: ", r1) // TEST
 	// fmt.Println("\nuint16 slice: ", r2)  // TEST
 	return r2, r1
+}
+
+/*
+*******************************************************************************
+numStringToInt32()
+
+Input: A string, expectedly some representation of a portnum integer 0-65535
+Output: The int32 value represented by the string and boolean validation that
+
+	it was a valid integer(TRUE); or the first out-of-bounds character that
+	showed the input to be NaN, and boolean FALSE
+
+Examples: Input: "132"  [0x49,0x51,0x50]          Output: 132,true
+
+	Input: "test" [0x116,0x101,0x115,0x116] Output: 116,false
+
+Q&A time:
+Q: HEY! We're doing port math with uint16 numbers, why is this defaulting to
+int32? (Great question.)
+A: Since other runes may sneak in, including erroneous input or valid list
+names, and since we use "-48" subtraction to convert the Ascii representation
+of a number to an actual number, negative int values are possible and must be
+handled as signed to prevent bad validation resulting from unsigned wraparound.
+That is why this uses int32 and not uint16. We can recast after we're done
+farting around.
+*******************************************************************************
+*/
+func numStringToInt32(snr string) (int32, bool) {
+	var tot int32 = 0
+	isnum := false               // I'll believe you're supposed to be a number when you show me you behave like one...
+	snr = strings.TrimSpace(snr) // be nice and trim it up, just in case
+	// fmt.Println("\nItem: ", []byte(snr)) //TEST
+	slen := len([]rune(snr))
+	for i := slen - 1; i >= 0; i-- { // build the number, by walking the chars
+		char := snr[i]
+		if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
+			//fmt.Printf("Char is OOB! c[0x%x] d[%d]", char, int32(char)-48) TEST
+			return int32(char), false // return OOB/NaN char value + FALSE
+		} else {
+			// fmt.Printf("Num char is %c", char) // TEST
+			isnum = true
+			// Use positional exponent math to compute value.
+			// This is, if I am thinking about this correctly, computationally less expensive than using math.Pow10 and float64s :)
+			var mplr int32 = 1 // multiplier, to rebuild our port num piece by piece
+			if char != '0' {   // only when we have a non zero num to compute
+				digit := slen - 1 - i // len-1-i is most signif. digit L->R
+				for j := digit; j > 0; j-- {
+					mplr = mplr * 10
+				}
+				// fmt.Printf(" times %d (x10^%d)", mplr, digit) TEST
+				tot = tot + (int32(char)-48)*mplr
+				// fmt.Printf(", totaling %d\n", tot)
+			}
+		}
+	}
+	return tot, isnum
 }

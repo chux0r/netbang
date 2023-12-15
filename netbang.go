@@ -223,7 +223,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 				log.Fatalf("Error reading file: [%s]. Exiting", *portsfileDo)
 			}
 			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
-			fmt.Printf("\nData read from cf file: [%s]", string(p))
+			fmt.Printf("\nData read from cf file: >> %s", string(p))
 			doPortsFinal(string(p))
 		}
 	}
@@ -383,4 +383,5 @@ func printReport(ss []string) {
 	for _, result := range ss {
 		fmt.Printf("\n%s", result)
 	}
+	fmt.Print("\n")
 }
