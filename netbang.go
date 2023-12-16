@@ -61,7 +61,8 @@ import (
 
 type NetSpec struct {
 	Protocol string   // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
-	PortList []uint16 // all der portz
+	PortList []uint16 // static port list
+	BangSpan []PortRange
 	//Flags    net.Flags		// xmas comes early, every time; (impl. syscall.RawConn)
 	//Packet 	 []byte			// packet constructor
 }
@@ -83,6 +84,11 @@ type TargetSpec struct {
 type ScanSpec struct {
 	Target   TargetSpec
 	NetDeets NetSpec
+}
+
+type PortRange struct {
+	Start uint16
+	End   uint16
 }
 
 // set up global constants for our port selection and use
@@ -161,9 +167,9 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		os.Exit(0)
 	} else if *listsDo != false || *listsDo2 != false {
 		if flag.Arg(0) == "" {
-			fmt.Print("Placeholder for list available lists\n") // TODO: list lists func
+			fmt.Print("\nPlaceholder for list available lists") // TODO: list lists func
 		} else {
-			fmt.Print("Placeholder for per-list item printout\n") // TODO: list named list items func
+			fmt.Print("\nPlaceholder for per-list item printout") // TODO: list named list items func
 		}
 		os.Exit(0)
 	}
@@ -259,6 +265,15 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 
 func main() {
 	bangHost(thisScan.NetDeets.PortList, thisScan.Target.Addr, thisScan.NetDeets.Protocol)
+}
+
+/* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
+func scanConstructor() {
+	thisScan.NetDeets.Protocol = "tcp"
+	thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
+	thisScan.Target.isIp = false
+	thisScan.Target.isHostn = false
+	thisScan.Target.Addr = "127.0.0.1"
 }
 
 /*

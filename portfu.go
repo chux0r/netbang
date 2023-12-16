@@ -1,10 +1,10 @@
 package main
 
 /******************************************************************************
-* portscan.go
+* portfu.go
 *
 * Functions used by netscanx specifically to support smart and quick port
-* selection, and teeing up TCP and UDP scans
+* define, parse, selection, combination, and teeing up for TCP and UDP scans
 *
 * CT Geigner ("chux0r")
 * 21 SEPT 2023
@@ -17,19 +17,10 @@ import (
 	"strings"
 )
 
-/* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
-func scanConstructor() {
-	thisScan.NetDeets.Protocol = "tcp"
-	thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
-	thisScan.Target.isIp = false
-	thisScan.Target.isHostn = false
-	thisScan.Target.Addr = "127.0.0.1"
-}
-
 /* buildNamedPortsList() returns a slice of named, prebuilt uint16 port numbers useful for TCP and UDP scanning */
 func buildNamedPortsList(sp string) []uint16 {
 
-	var tT = []uint16{135, 137, 139, 445, 623, 3389, 5040, 5985, 8000, 9999} // TEST functionality; windows hosts
+	var tT = []uint16{22, 135, 137, 139, 445, 623, 3389, 5040, 5985, 8000, 9999} // TEST functionality;
 	var tS = []uint16{20, 21, 22, 23, 25, 43, 53, 67, 68, 69, 79, 80, 88, 110, 111, 113, 119, 135, 137, 139, 143, 177, 179, 389, 443, 445, 464, 512, 513, 514, 515, 546, 547, 587, 593, 636, 853, 873, 989, 990, 993, 995, 1270, 1337, 1433, 1434, 1521, 2222, 2323, 2375, 2483, 2484, 3306, 3333, 3389, 5060, 5061, 5432, 5800, 5900, 8008, 8080, 8081, 8088, 8443}
 	var tE = []uint16{37, 49, 70, 82, 83, 85, 109, 115, 162, 201, 220, 264, 444, 464, 497, 530, 543, 544, 601, 631, 639, 666, 749, 750, 751, 752, 843, 902, 903, 992, 1080, 1194, 1514, 1701, 1723, 1741, 1812, 1813, 2049, 2082, 2083, 2095, 2096, 2100, 2376, 2638, 3128, 3268, 3269, 3689, 4333, 4444, 5000, 6514, 6881, 8000, 8089, 6000, 6001, 6665, 6666, 6667, 6668, 6669, 8333, 8334, 8888, 9001, 9333, 10000, 12345, 18080, 18081, 19132, 20000, 31337}
 	var uS = []uint16{67, 68, 69, 123, 138, 161, 162, 264, 500, 514, 520, 521, 853, 902, 1433, 1434, 1812, 1813, 2049, 3268, 3269, 3260, 3478, 3479, 3480, 3481, 4500, 4567, 5000, 5001, 5060, 10000, 11371}
@@ -40,8 +31,8 @@ func buildNamedPortsList(sp string) []uint16 {
 	case "tcp_short":
 		return tS
 	case "tcp_extra":
-		// make a slice able to hold 2 port arrays and enough head room for 32 more user-specified ports.
-		// NOTE: Made with len() so we can edit the tS, tE, uS portlist definitions without having to remember to update the math
+		// conjure and populate a slice able to hold both tcp port def arrays
+		// Variable with len() to accommodate portlist definition updates
 		tX := make([]uint16, len(tS)+len(tE), len(tS)+len(tE)+32)
 		copy(tX, tS)
 		tX = append(tX, tE...)
@@ -110,16 +101,27 @@ func doPortsFinal(udd string) {
 *****************************************************************************
 parsePortsCdl()
 
-Parses the comma-delimited string passed in by the user, using the --ports
-flag. Since the user can specify either numbers or port list names, uses
-numStringToInt32() to extract portnumbers in usable numeric form, and flags
-when the value in the list is not a number.
-Returns ports as []uint16, any (assumed) named port lists as []string.
+Input: Comma-delimited string of possible ports, named port lists, or port
+number range. Uses numStringToInt32() to extract portnumbers in usable
+numeric form, and flags when the value in the list is not a number.
+
+Updates identified port ranges to NetDeets.BangSpan.
+
+Returns:
+
+	 	Ports: []uint16
+		(assumed) port ranges: []string
+
+TODO:
+
+2) Dedup list (not sure here is the place tho)
+
 *****************************************************************************
 */
 func parsePortsCdl(s string) ([]uint16, []string) {
-	var r1 []string
-	var r2 []uint16
+	var r1 []string  // named lists     ex: {"tcp_extra"}
+	var r2 []uint16  // ports           ex: {22,23,80,3389}
+	var pr PortRange // port range defs ex: {"80-90","100-3000"}
 	var port int32
 	var isnum bool
 	// fmt.Println("\nParsePortsCDL input string: ", s) TEST
@@ -127,14 +129,63 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 	for _, item := range list { // Eval each list item
 		port, isnum = numStringToInt32(item)
 		if isnum == false { // put the name in the list of names
-			r1 = append(r1, item)
-		} else { // put the port in the list of ports
+			if port == 45 { // 45d is 0x2d, a.k.a. the hyphen. Possible num1-num2 range.
+				pr.Start, pr.End = getPortRange(item) // Check port range def and populate BangSpan if valid
+				if pr.End != 0 {
+					thisScan.NetDeets.BangSpan = append(thisScan.NetDeets.BangSpan, pr)
+				}
+			} else { // Assume a "named list"; send to named lists eval
+				r1 = append(r1, item)
+			}
+		} else { // put numbers in the list of ports
 			r2 = append(r2, uint16(port))
 		}
 	}
-	// fmt.Println("\nStrings slice: ", r1) // TEST
-	// fmt.Println("\nuint16 slice: ", r2)  // TEST
+	// fmt.Println("\nPort range defs strings slice: ", r0) // TEST
+	// fmt.Println("\nNamed portlist strings slice: ", r1) // TEST
+	// fmt.Println("\nUint16 ports slice: ", r2)  // TEST
 	return r2, r1
+}
+
+/*
+*******************************************************************************
+getPortRange()
+
+People need to be able to shorthand portrange defs. Besides, setting up a 65K+
+item uint16 slice just to scan all the ports would be dumb.
+
+Input:  String with a hyphen, indicating either a port range definition or an
+
+	invalid input.
+
+Output: Validated strings will return the beginning port and the ending port of
+
+	the range.
+	Invalid will return:
+		0,0, OR
+		(invalid/NaN char value), 0
+
+*******************************************************************************
+*/
+func getPortRange(s string) (uint16, uint16) {
+	var pr = []uint16{0, 0}
+	numwords := strings.Split(s, "-")
+	if len(numwords) != 2 {
+		return 0, 0
+	}
+	for i, numwd := range numwords {
+		port, isnum := numStringToInt32(numwd)
+		if isnum {
+			pr[i] = uint16(port)
+			continue
+		} else {
+			return uint16(port), 0
+		}
+	}
+	if pr[0] > pr[1] { // if not begin-smallnum, end-largernum, swap em
+		pr[0], pr[1] = pr[1], pr[0]
+	}
+	return pr[0], pr[1]
 }
 
 /*
@@ -144,22 +195,24 @@ numStringToInt32()
 Input: A string, expectedly some representation of a portnum integer 0-65535
 Output: The int32 value represented by the string and boolean validation that
 
-	it was a valid integer(TRUE); or the first out-of-bounds character that
-	showed the input to be NaN, and boolean FALSE
+	it was a valid integer (TRUE); OR
+	The first out-of-bounds character that showed the input to be NaN, and
+	boolean FALSE.
 
-Examples: Input: "132"  [0x49,0x51,0x50]          Output: 132,true
+Examples: Input: "132"  [0x31,0x33,0x32]         Output: 132 [0x84],true
 
-	Input: "test" [0x116,0x101,0x115,0x116] Output: 116,false
+	      Input: "test" [0x74,0x65,0x73,0x74]    Output: 116 [0x74],false
+		  Input: "7-23" [0x37,0x2D,0x32,0x33]    Output: 45  [0x2D],false
 
 Q&A time:
 Q: HEY! We're doing port math with uint16 numbers, why is this defaulting to
 int32? (Great question.)
 A: Since other runes may sneak in, including erroneous input or valid list
-names, and since we use "-48" subtraction to convert the Ascii representation
-of a number to an actual number, negative int values are possible and must be
-handled as signed to prevent bad validation resulting from unsigned wraparound.
-That is why this uses int32 and not uint16. We can recast after we're done
-farting around.
+names, and since we use "-48d (-0x30)" subtraction to convert the Ascii
+representationof a number to an actual number, negative int values are possible
+and must be handled as signed to prevent bad validation resulting from unsigned
+wraparound. That is why this uses int32 and not uint16. We can recast after
+we're done farting around.
 *******************************************************************************
 */
 func numStringToInt32(snr string) (int32, bool) {
