@@ -46,12 +46,12 @@ func buildNamedPortsList(sp string) []uint16 {
 
 /*
 *****************************************************************************
-getHostPortString()
+getSocketString()
 
 Returns a "host:port" target string usable by net.Dial() and resolveUDPAddr()
 *****************************************************************************
 */
-func getHostPortString(t string, p uint16) string {
+func getSocketString(t string, p uint16) string {
 	s := fmt.Sprintf("%s:%d", t, p)
 	return s
 }

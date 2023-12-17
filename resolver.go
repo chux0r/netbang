@@ -24,7 +24,7 @@ Ex: setCustomResolver(&Resolv.Dns, "8.8.8.8")
 *****************************************************************************
 */
 func setCustomResolver(dns *net.Resolver, ip string) {
-	dnsHost := getHostPortString(ip, uint16(53)) // TODO :: validate given IP
+	dnsHost := getSocketString(ip, uint16(53)) // TODO :: validate given IP
 	dns.PreferGo = true
 	dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 		d := net.Dialer{

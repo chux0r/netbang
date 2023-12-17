@@ -23,14 +23,13 @@
 * net.Dial() is pretty ok, but it abstracts lots of stuff I'd like to monitor
 * or even change. Anywho, I'm stuck with a full-3-way TCP handshake since
 * there's no controlling the connection or the flags or anything like that.
-* NOTE: I did figure out, as I suspected, that the network error messages are
-* coming from the stack in the OS, and are dependent in that way. I still want
+* Need to do raw IP sockets next.
+* NOTE: the network error messages are are OS/stack-specific. I still want
 * to parse them to do some interpretation and output to the users, but might
-* have to do so in OS-specific add-ins.
+* have to do so in OS-specific context checking.
 *
 * Next features hit-list:
 * ------------------------------------------------------
-* UDP scanning (DialUDP)
 * Recon using Shodan data
 * Connect() Flags scan configurations (TCP half open, Xmas, etc)
 * Improved error processing/context-adding/reporting
@@ -57,6 +56,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 type NetSpec struct {
@@ -84,6 +84,7 @@ type TargetSpec struct {
 type ScanSpec struct {
 	Target   TargetSpec
 	NetDeets NetSpec
+	Timeout  uint16 //timeout in ms
 }
 
 type PortRange struct {
@@ -137,15 +138,15 @@ netbang [-l|--lists] [<Listname>]
 
 netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	FLAGS
-		[-p|--ports] <num0(,num1,num2,...numN,named_list)> 
-		Specify port, ports, and/or named portlists to use in a scan. TCP or UDP proto only. 
+		[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+		Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
 		(View named portlists with --lists)
 
 		[-pf|--portsfile] <(directory path/)filename>
 		Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
 
 		[--proto] <tcp|udp>
-		Specify scanning protocol, tcp, udp, or icmp. Default is "tcp".
+		Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
 		
 		[--resolver] <ipaddr> 
 		DNS resolver to use. Default is to use your system's local resolver.
@@ -173,35 +174,6 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		}
 		os.Exit(0)
 	}
-
-	/*
-		if *portsDo || *portsDo2  {
-			if flag.Arg(0) == "" {
-				fmt.Print("Error: No ports listed! You must list at least one port number with \"--ports\".")
-				os.Exit(1)
-			} else {
-				thisScan.NetDeets.PortList = []uint16{}                     // clear the defaults
-				pargs := flag.Arg(0)                                        // gather user-spec'd ports
-				p, pl := parsePortsCdl(pargs)                               // TODO: create func that assembles final []uint16 port list from spec
-				fmt.Println("Ports specified: ", p, "List specified: ", pl) // TEST/TODO: remove when port assembler complete
-				if len(pl) > 0 {                                            // if we have named lists...
-					for i := 0; i < len(pl); i++ {
-						// resize the portlist appropriately and reassemble
-						ts1 := thisScan.NetDeets.PortList
-						ts2 := buildNamedPortsList(pl[i])
-						thisScan.NetDeets.PortList = make([]uint16, len(ts1)+len(ts2), len(ts1)+len(ts2)+32)
-						copy(thisScan.NetDeets.PortList, ts1)
-						thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ts2...)
-					}
-				}
-				if len(p) > 0 {
-					for _, ptmp := range p {
-						thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, ptmp)
-					}
-				}
-			}
-		}
-	*/
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
 		thisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
@@ -274,6 +246,7 @@ func scanConstructor() {
 	thisScan.Target.isIp = false
 	thisScan.Target.isHostn = false
 	thisScan.Target.Addr = "127.0.0.1"
+	thisScan.Timeout = 3000
 }
 
 /*
@@ -314,11 +287,11 @@ func bangHost(pl []uint16, host string, proto string) {
 	fmt.Printf("\nBang target: [%s], Portcount: [%d]\n=====================================================", host, jobtot)
 	// scan static port defs
 	for _, port := range pl { // For all ports given, bang each one and report results
-		hp := getHostPortString(host, port)
+		sock := getSocketString(host, port)
 		if proto == "tcp" {
-			go bangTcpPort(hp, scanIpc, &job) // Bang bang! Single host:port per call
+			go bangTcpPort(sock, scanIpc, &job) // Bang bang! Single host:port per call
 		} else if proto == "udp" {
-			go bangUdpPort(hp, scanIpc, &job)
+			go bangUdpPort(sock, scanIpc, &job)
 		} else {
 			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 		}
@@ -327,11 +300,11 @@ func bangHost(pl []uint16, host string, proto string) {
 	if prtot > 0 {
 		for _, spanDef := range thisScan.NetDeets.BangSpan {
 			for j := spanDef.Start; j <= spanDef.End; j++ {
-				hp := getHostPortString(host, j)
+				sock := getSocketString(host, j)
 				if proto == "tcp" {
-					go bangTcpPort(hp, scanIpc, &job) // Bang bang! Single host:port per call
+					go bangTcpPort(sock, scanIpc, &job) // Bang bang! Single host:port per call
 				} else if proto == "udp" {
-					go bangUdpPort(hp, scanIpc, &job)
+					go bangUdpPort(sock, scanIpc, &job)
 				} else {
 					log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 				}
@@ -366,7 +339,7 @@ bangTcpPort()
 func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
-	conn, err := net.Dial("tcp", t) // TODO: add default max time wait to this + Make configurable
+	conn, err := net.DialTimeout("tcp", t, time.Duration(thisScan.Timeout)*time.Millisecond) // net.Dial, but with configurable timeout so we can boogey when needed
 	if err != nil {
 		fmt.Printf("💀")
 		ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
