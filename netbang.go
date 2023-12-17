@@ -97,7 +97,7 @@ const (
 	maxPorts       uint16 = 65535
 )
 
-var thisScan ScanSpec // TODO: newScanSpec constructor, returning *ScanSpec
+var thisScan ScanSpec
 var Resolv DnsData
 
 func init() {
@@ -279,6 +279,9 @@ func scanConstructor() {
 /*
 bangHost()
 
+Bangscan one host - For proto (tcp/udp) all ports given, scan single host and
+format results
+
 	INPUT: 	[]uint16 port list (can be empty)
 			protocol, TCP or UDP
 			target hostname or IP
@@ -289,9 +292,14 @@ bangHost()
 			Scan results data/report
 */
 func bangHost(pl []uint16, host string, proto string) {
-	// TCP scan - For all ports given, scan single host and format results
-	scanReport := make([]string, 0, len(pl)) // report of scan responses, usually by tcp/udp port number. Portlist len to avoid reslicing.
-	scanIpc := make(chan string)             // com pipe: raw, unordered host:port try response data or errors
+
+	prtot := 0 //port range total ports represented
+	for _, pspan := range thisScan.NetDeets.BangSpan {
+		prtot += pspan.Size() //add up size of all defined/given port ranges
+	}
+	jobtot := len(pl) + prtot // number of scan jobs equal to portlist total plus portranges total
+	scanReport := make([]string, 0, jobtot)
+	scanIpc := make(chan string) // com pipe: raw, unordered host:port try response data or errors
 	rxc := 0
 	job := 0
 	if len(pl) <= 0 { // if no ports specified, use short default common ports
@@ -301,11 +309,10 @@ func bangHost(pl []uint16, host string, proto string) {
 			pl = buildNamedPortsList("udp_short")
 		} else {
 			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
-			os.Exit(1)
 		}
 	}
-	fmt.Printf("\nBangHost: [%s], Portcount: [%d]\n=====================================================", host, len(pl))
-
+	fmt.Printf("\nBang target: [%s], Portcount: [%d]\n=====================================================", host, jobtot)
+	// scan static port defs
 	for _, port := range pl { // For all ports given, bang each one and report results
 		hp := getHostPortString(host, port)
 		if proto == "tcp" {
@@ -316,10 +323,25 @@ func bangHost(pl []uint16, host string, proto string) {
 			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 		}
 	}
-	fmt.Println("\nPortBangers running...")
+	// if we have any, scan port ranges given
+	if prtot > 0 {
+		for _, spanDef := range thisScan.NetDeets.BangSpan {
+			for j := spanDef.Start; j <= spanDef.End; j++ {
+				hp := getHostPortString(host, j)
+				if proto == "tcp" {
+					go bangTcpPort(hp, scanIpc, &job) // Bang bang! Single host:port per call
+				} else if proto == "udp" {
+					go bangUdpPort(hp, scanIpc, &job)
+				} else {
+					log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
+				}
+			}
+		}
+	}
+	fmt.Printf("\n%s portbangers unleashed...", strings.ToUpper(proto))
 
 	// Channel receiver :: Get all concurrent scan job output and report
-	for i := 0; i < len(pl); i++ {
+	for i := 0; i < jobtot; i++ {
 		//for log := range scanIpc {
 		log := <-scanIpc
 		rxc++

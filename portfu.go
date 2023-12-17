@@ -60,7 +60,7 @@ func getHostPortString(t string, p uint16) string {
 *****************************************************************************
 addPortsToPortsList()
 
-Add a slice of []uint16 to NetDeets.Portlist
+Add a slice of []uint16 to static list NetDeets.Portlist
 *****************************************************************************
 */
 func addPortsToPortsList(a []uint16) {
@@ -186,6 +186,12 @@ func getPortRange(s string) (uint16, uint16) {
 		pr[0], pr[1] = pr[1], pr[0]
 	}
 	return pr[0], pr[1]
+}
+
+func (pr PortRange) Size() int {
+	return (int(pr.End) - int(pr.Start) + 1)
+	//for _, spanDef := range thisScan.NetDeets.BangSpan {
+	//	prtot += (int(spanDef.End) - int(spanDef.Start) +1) //add up size of all defined/given port ranges
 }
 
 /*
