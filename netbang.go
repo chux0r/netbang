@@ -18,21 +18,23 @@
 * noisy scanner. It is pretty fast though so there's that. I'll work on the
 * stealthy bits soon enough. --ctg
 *
-* Things to ponder, improve, solve
+* What's being developed NOW-ish
 * ------------------------------------------------------
-* net.Dial() is pretty ok, but it abstracts lots of stuff I'd like to monitor
-* or even change. Anywho, I'm stuck with a full-3-way TCP handshake since
-* there's no controlling the connection or the flags or anything like that.
-* Need to do raw IP sockets next.
-* NOTE: the network error messages are are OS/stack-specific. I still want
-* to parse them to do some interpretation and output to the users, but might
-* have to do so in OS-specific context checking.
+* 1) Do raw IP sockets AF_INET stuff+packet constructor next.
+* 2) Whip up TCP and Xmas-tree scan once we have 1) implemented
+* Rationale:
+* net.Dial() is pretty ok, but it abstracts lots of stuff. I'm stuck with a
+* full-3-way TCP handshake, since there's no controlling the connection or the
+* packet flags or anything like that.
+* In short- it's too well behaved for what we need to do.
 *
 * Next features hit-list:
 * ------------------------------------------------------
 * Recon using Shodan data
 * Connect() Flags scan configurations (TCP half open, Xmas, etc)
 * Improved error processing/context-adding/reporting
+* OS-specific processing/interpretation of OS network stack error/status mesgs
+* Trap SIGINT(Ctrl-C), Stop scan and gather whatev report data exists
 *
 * Ideas! Fun to watch 'em rot in a pile. Amazing when I actually implement!
 * =============================================================================
@@ -84,7 +86,7 @@ type TargetSpec struct {
 type ScanSpec struct {
 	Target   TargetSpec
 	NetDeets NetSpec
-	Timeout  uint16 //timeout in ms
+	Timeout  int32 //timeout in ms
 }
 
 type PortRange struct {
@@ -98,7 +100,7 @@ const (
 	maxPorts       uint16 = 65535
 )
 
-var thisScan ScanSpec
+var ThisScan ScanSpec
 var Resolv DnsData
 
 func init() {
@@ -117,6 +119,7 @@ func init() {
 	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
 	protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
 	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	timeoutSet := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
 	/*
 		verboseDo  := flag.Bool("v", false, "Verbose runtime output")
 		verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
@@ -150,6 +153,9 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		
 		[--resolver] <ipaddr> 
 		DNS resolver to use. Default is to use your system's local resolver.
+
+		[-t] <timeout, in ms>
+		Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
 	
 	<TARGET> 
 		Object of scan. Target must be an IP address, an IP/CIDR range, or a valid 
@@ -175,7 +181,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		os.Exit(0)
 	}
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
-		thisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
+		ThisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
 			log.Print("Warning: Ports given with both -p and --ports. Combining.")
 		}
@@ -210,8 +216,8 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		if flag.Arg(0) == "" {
 			fmt.Print("\nWarning: No protocol listed with --proto. Using \"tcp\".")
 		} else {
-			thisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
-			if thisScan.NetDeets.Protocol != "tcp" && thisScan.NetDeets.Protocol != "udp" {
+			ThisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
+			if ThisScan.NetDeets.Protocol != "tcp" && ThisScan.NetDeets.Protocol != "udp" {
 				log.Fatalf("Error: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0))
 			}
 		}
@@ -231,22 +237,21 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
 		}
 	}
-	// TODO: TARGET VALIDATION CODE GOES HERE
-	thisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
+	ThisScan.Timeout = int32(*timeoutSet)          //
+	ThisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
 }
 
 func main() {
-	bangHost(thisScan.NetDeets.PortList, thisScan.Target.Addr, thisScan.NetDeets.Protocol)
+	bangHost(ThisScan.NetDeets.PortList, ThisScan.Target.Addr, ThisScan.NetDeets.Protocol)
 }
 
 /* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
 func scanConstructor() {
-	thisScan.NetDeets.Protocol = "tcp"
-	thisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
-	thisScan.Target.isIp = false
-	thisScan.Target.isHostn = false
-	thisScan.Target.Addr = "127.0.0.1"
-	thisScan.Timeout = 3000
+	ThisScan.NetDeets.Protocol = "tcp"
+	ThisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
+	ThisScan.Target.isIp = false
+	ThisScan.Target.isHostn = false
+	ThisScan.Target.Addr = "127.0.0.1"
 }
 
 /*
@@ -267,7 +272,7 @@ format results
 func bangHost(pl []uint16, host string, proto string) {
 
 	prtot := 0 //port range total ports represented
-	for _, pspan := range thisScan.NetDeets.BangSpan {
+	for _, pspan := range ThisScan.NetDeets.BangSpan {
 		prtot += pspan.Size() //add up size of all defined/given port ranges
 	}
 	jobtot := len(pl) + prtot // number of scan jobs equal to portlist total plus portranges total
@@ -298,7 +303,7 @@ func bangHost(pl []uint16, host string, proto string) {
 	}
 	// if we have any, scan port ranges given
 	if prtot > 0 {
-		for _, spanDef := range thisScan.NetDeets.BangSpan {
+		for _, spanDef := range ThisScan.NetDeets.BangSpan {
 			for j := spanDef.Start; j <= spanDef.End; j++ {
 				sock := getSocketString(host, j)
 				if proto == "tcp" {
@@ -339,16 +344,30 @@ bangTcpPort()
 func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
-	conn, err := net.DialTimeout("tcp", t, time.Duration(thisScan.Timeout)*time.Millisecond) // net.Dial, but with configurable timeout so we can boogey when needed
-	if err != nil {
-		fmt.Printf("💀")
-		ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
-		//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
+	if ThisScan.Timeout < 0 { // timeout set to -1, use default host/network timeout
+		conn, err := net.Dial("tcp", t)
+		if err != nil {
+			fmt.Printf("💀")
+			ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+			//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
+		} else {
+			defer conn.Close()
+			fmt.Print("😎")
+			ch <- fmt.Sprint(joblog, "[😎] OPEN")
+			//fmt.Printf("\n[%s]: Connected ok: open", t)
+		}
 	} else {
-		defer conn.Close()
-		fmt.Print("😎")
-		ch <- fmt.Sprint(joblog, "[😎] OPEN")
-		//fmt.Printf("\n[%s]: Connected ok: open", t)
+		conn, err := net.DialTimeout("tcp", t, time.Duration(ThisScan.Timeout)*time.Millisecond) // net.Dial, but with configurable timeout so we can boogey when needed
+		if err != nil {
+			fmt.Printf("💀")
+			ch <- fmt.Sprint(joblog, "[💀] ERROR: ", err.Error())
+			//fmt.Printf("\n[%s]: Connection error: %s", t, err.Error())
+		} else {
+			defer conn.Close()
+			fmt.Print("😎")
+			ch <- fmt.Sprint(joblog, "[😎] OPEN")
+			//fmt.Printf("\n[%s]: Connected ok: open", t)
+		}
 	}
 }
 
@@ -389,7 +408,7 @@ func bangUdpPort(t string, ch chan string, job *int) {
 }
 
 func printReport(ss []string) {
-	fmt.Printf("\n%s Scan Results\n================================================================================", thisScan.Target.Addr)
+	fmt.Printf("\n%s Scan Results\n================================================================================", ThisScan.Target.Addr)
 	for _, result := range ss {
 		fmt.Printf("\n%s", result)
 	}

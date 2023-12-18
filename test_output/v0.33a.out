@@ -1,0 +1,102 @@
+$> go version
+go version go1.20.7 linux/amd64
+$> uname -a|cut -d " " -f 11,10,7,8
+Debian 6.4.11-1kali1 x86_64 GNU/Linux
+$> ./netbang -p 80,443,8080-8083 www.scanme.com
+
+Bang target: [www.scanme.com], Portcount: [6]
+=====================================================
+TCP portbangers unleashed...😎😎💀💀💀💀
+Jobs run: 6
+www.scanme.com Scan Results
+================================================================================
+[www.scanme.com:443] -->        [😎] OPEN
+[www.scanme.com:80] --> [😎] OPEN
+[www.scanme.com:8080] -->       [💀] ERROR: dial tcp 54.229.140.24:8080: connect: connection refused
+[www.scanme.com:8083] -->       [💀] ERROR: dial tcp 54.229.140.24:8083: i/o timeout
+[www.scanme.com:8082] -->       [💀] ERROR: dial tcp 54.229.140.24:8082: i/o timeout
+[www.scanme.com:8081] -->       [💀] ERROR: dial tcp 54.229.140.24:8081: i/o timeout
+
+$> ./netbang -p 20-25,tcp_short,80,111,443,445,1716,8080-8083 127.0.0.1
+
+Bang target: [127.0.0.1], Portcount: [75]
+=====================================================
+TCP portbangers unleashed...💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 75
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:8083] -->    [💀] ERROR: dial tcp 127.0.0.1:8083: connect: connection refused
+[127.0.0.1:2222] -->    [💀] ERROR: dial tcp 127.0.0.1:2222: connect: connection refused
+[127.0.0.1:80] -->      [💀] ERROR: dial tcp 127.0.0.1:80: connect: connection refused
+[127.0.0.1:79] -->      [💀] ERROR: dial tcp 127.0.0.1:79: connect: connection refused
+[127.0.0.1:1521] -->    [💀] ERROR: dial tcp 127.0.0.1:1521: connect: connection refused
+[127.0.0.1:8082] -->    [💀] ERROR: dial tcp 127.0.0.1:8082: connect: connection refused
+[127.0.0.1:119] -->     [💀] ERROR: dial tcp 127.0.0.1:119: connect: connection refused
+[127.0.0.1:8081] -->    [💀] ERROR: dial tcp 127.0.0.1:8081: connect: connection refused
+[127.0.0.1:1434] -->    [💀] ERROR: dial tcp 127.0.0.1:1434: connect: connection refused
+[127.0.0.1:2483] -->    [💀] ERROR: dial tcp 127.0.0.1:2483: connect: connection refused
+[127.0.0.1:69] -->      [💀] ERROR: dial tcp 127.0.0.1:69: connect: connection refused
+[127.0.0.1:110] -->     [💀] ERROR: dial tcp 127.0.0.1:110: connect: connection refused
+[127.0.0.1:8080] -->    [💀] ERROR: dial tcp 127.0.0.1:8080: connect: connection refused
+[127.0.0.1:2375] -->    [💀] ERROR: dial tcp 127.0.0.1:2375: connect: connection refused
+[127.0.0.1:3389] -->    [💀] ERROR: dial tcp 127.0.0.1:3389: connect: connection refused
+[127.0.0.1:2323] -->    [💀] ERROR: dial tcp 127.0.0.1:2323: connect: connection refused
+[127.0.0.1:68] -->      [💀] ERROR: dial tcp 127.0.0.1:68: connect: connection refused
+[127.0.0.1:113] -->     [💀] ERROR: dial tcp 127.0.0.1:113: connect: connection refused
+[127.0.0.1:67] -->      [💀] ERROR: dial tcp 127.0.0.1:67: connect: connection refused
+[127.0.0.1:3306] -->    [💀] ERROR: dial tcp 127.0.0.1:3306: connect: connection refused
+[127.0.0.1:24] -->      [💀] ERROR: dial tcp 127.0.0.1:24: connect: connection refused
+[127.0.0.1:135] -->     [💀] ERROR: dial tcp 127.0.0.1:135: connect: connection refused
+[127.0.0.1:593] -->     [💀] ERROR: dial tcp 127.0.0.1:593: connect: connection refused
+[127.0.0.1:43] -->      [💀] ERROR: dial tcp 127.0.0.1:43: connect: connection refused
+[127.0.0.1:21] -->      [💀] ERROR: dial tcp 127.0.0.1:21: connect: connection refused
+[127.0.0.1:8080] -->    [💀] ERROR: dial tcp 127.0.0.1:8080: connect: connection refused
+[127.0.0.1:21] -->      [💀] ERROR: dial tcp 127.0.0.1:21: connect: connection refused
+[127.0.0.1:20] -->      [💀] ERROR: dial tcp 127.0.0.1:20: connect: connection refused
+[127.0.0.1:20] -->      [💀] ERROR: dial tcp 127.0.0.1:20: connect: connection refused
+[127.0.0.1:8008] -->    [💀] ERROR: dial tcp 127.0.0.1:8008: connect: connection refused
+[127.0.0.1:8443] -->    [💀] ERROR: dial tcp 127.0.0.1:8443: connect: connection refused
+[127.0.0.1:25] -->      [💀] ERROR: dial tcp 127.0.0.1:25: connect: connection refused
+[127.0.0.1:5900] -->    [💀] ERROR: dial tcp 127.0.0.1:5900: connect: connection refused
+[127.0.0.1:8088] -->    [💀] ERROR: dial tcp 127.0.0.1:8088: connect: connection refused
+[127.0.0.1:5800] -->    [💀] ERROR: dial tcp 127.0.0.1:5800: connect: connection refused
+[127.0.0.1:22] -->      [💀] ERROR: dial tcp 127.0.0.1:22: connect: connection refused
+[127.0.0.1:989] -->     [💀] ERROR: dial tcp 127.0.0.1:989: connect: connection refused
+[127.0.0.1:8081] -->    [💀] ERROR: dial tcp 127.0.0.1:8081: connect: connection refused
+[127.0.0.1:137] -->     [💀] ERROR: dial tcp 127.0.0.1:137: connect: connection refused
+[127.0.0.1:514] -->     [💀] ERROR: dial tcp 127.0.0.1:514: connect: connection refused
+[127.0.0.1:3333] -->    [💀] ERROR: dial tcp 127.0.0.1:3333: connect: connection refused
+[127.0.0.1:990] -->     [💀] ERROR: dial tcp 127.0.0.1:990: connect: connection refused
+[127.0.0.1:1270] -->    [💀] ERROR: dial tcp 127.0.0.1:1270: connect: connection refused
+[127.0.0.1:389] -->     [💀] ERROR: dial tcp 127.0.0.1:389: connect: connection refused
+[127.0.0.1:23] -->      [💀] ERROR: dial tcp 127.0.0.1:23: connect: connection refused
+[127.0.0.1:512] -->     [💀] ERROR: dial tcp 127.0.0.1:512: connect: connection refused
+[127.0.0.1:443] -->     [💀] ERROR: dial tcp 127.0.0.1:443: connect: connection refused
+[127.0.0.1:179] -->     [💀] ERROR: dial tcp 127.0.0.1:179: connect: connection refused
+[127.0.0.1:139] -->     [💀] ERROR: dial tcp 127.0.0.1:139: connect: connection refused
+[127.0.0.1:5060] -->    [💀] ERROR: dial tcp 127.0.0.1:5060: connect: connection refused
+[127.0.0.1:993] -->     [💀] ERROR: dial tcp 127.0.0.1:993: connect: connection refused
+[127.0.0.1:5432] -->    [💀] ERROR: dial tcp 127.0.0.1:5432: connect: connection refused
+[127.0.0.1:1433] -->    [💀] ERROR: dial tcp 127.0.0.1:1433: connect: connection refused
+[127.0.0.1:445] -->     [💀] ERROR: dial tcp 127.0.0.1:445: connect: connection refused
+[127.0.0.1:22] -->      [💀] ERROR: dial tcp 127.0.0.1:22: connect: connection refused
+[127.0.0.1:177] -->     [💀] ERROR: dial tcp 127.0.0.1:177: connect: connection refused
+[127.0.0.1:1337] -->    [💀] ERROR: dial tcp 127.0.0.1:1337: connect: connection refused
+[127.0.0.1:873] -->     [💀] ERROR: dial tcp 127.0.0.1:873: connect: connection refused
+[127.0.0.1:515] -->     [💀] ERROR: dial tcp 127.0.0.1:515: connect: connection refused
+[127.0.0.1:464] -->     [💀] ERROR: dial tcp 127.0.0.1:464: connect: connection refused
+[127.0.0.1:636] -->     [💀] ERROR: dial tcp 127.0.0.1:636: connect: connection refused
+[127.0.0.1:853] -->     [💀] ERROR: dial tcp 127.0.0.1:853: connect: connection refused
+[127.0.0.1:143] -->     [💀] ERROR: dial tcp 127.0.0.1:143: connect: connection refused
+[127.0.0.1:53] -->      [💀] ERROR: dial tcp 127.0.0.1:53: connect: connection refused
+[127.0.0.1:5061] -->    [💀] ERROR: dial tcp 127.0.0.1:5061: connect: connection refused
+[127.0.0.1:546] -->     [💀] ERROR: dial tcp 127.0.0.1:546: connect: connection refused
+[127.0.0.1:25] -->      [💀] ERROR: dial tcp 127.0.0.1:25: connect: connection refused
+[127.0.0.1:88] -->      [💀] ERROR: dial tcp 127.0.0.1:88: connect: connection refused
+[127.0.0.1:23] -->      [💀] ERROR: dial tcp 127.0.0.1:23: connect: connection refused
+[127.0.0.1:995] -->     [💀] ERROR: dial tcp 127.0.0.1:995: connect: connection refused
+[127.0.0.1:513] -->     [💀] ERROR: dial tcp 127.0.0.1:513: connect: connection refused
+[127.0.0.1:547] -->     [💀] ERROR: dial tcp 127.0.0.1:547: connect: connection refused
+[127.0.0.1:587] -->     [💀] ERROR: dial tcp 127.0.0.1:587: connect: connection refused
+[127.0.0.1:2484] -->    [💀] ERROR: dial tcp 127.0.0.1:2484: connect: connection refused
+[127.0.0.1:111] -->     [💀] ERROR: dial tcp 127.0.0.1:111: connect: connection refused

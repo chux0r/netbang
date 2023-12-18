@@ -47,10 +47,10 @@ func resolveName(s string) { // var Resolv DnsData is a global struct
 	ctx := context.Background() // TODO: determine which context would be most helpful. Using Background() for now
 	t := net.ParseIP(s)         // TODO: move to whatTargetType() func. Answers: is target a FQDN or an IP?
 	if t != nil {               // if Target is an IP
-		thisScan.Target.Ip = []byte(s)
-		thisScan.Target.isIp = true
+		ThisScan.Target.Ip = []byte(s)
+		ThisScan.Target.isIp = true
 	} else { // if Target is a hostname/FQDN
-		thisScan.Target.isHostn = true
+		ThisScan.Target.isHostn = true
 		fmt.Printf("DNS Lookup for %s: \n", s)
 		Resolv.Addrs, err = Resolv.Dns.LookupHost(ctx, s)
 		if err != nil {

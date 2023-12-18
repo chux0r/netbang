@@ -65,11 +65,11 @@ Add a slice of []uint16 to static list NetDeets.Portlist
 */
 func addPortsToPortsList(a []uint16) {
 
-	tmp := thisScan.NetDeets.PortList
-	// the LEN should not be > 0? I think I did this wrong. Try setting len to zero, but capacity to len.tmp+len.a+32 // thisScan.NetDeets.PortList = make([]uint16, len(tmp)+len(a), len(tmp)+len(a)+32)
-	thisScan.NetDeets.PortList = make([]uint16, 0, len(tmp)+len(a)) //stretch capacity out to total size
-	copy(thisScan.NetDeets.PortList, tmp)
-	thisScan.NetDeets.PortList = append(thisScan.NetDeets.PortList, a...)
+	tmp := ThisScan.NetDeets.PortList
+	// the LEN should not be > 0? I think I did this wrong. Try setting len to zero, but capacity to len.tmp+len.a+32 // ThisScan.NetDeets.PortList = make([]uint16, len(tmp)+len(a), len(tmp)+len(a)+32)
+	ThisScan.NetDeets.PortList = make([]uint16, 0, len(tmp)+len(a)) //stretch capacity out to total size
+	copy(ThisScan.NetDeets.PortList, tmp)
+	ThisScan.NetDeets.PortList = append(ThisScan.NetDeets.PortList, a...)
 
 }
 
@@ -132,7 +132,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 			if port == 45 { // 45d is 0x2d, a.k.a. the hyphen. Possible num1-num2 range.
 				pr.Start, pr.End = getPortRange(item) // Check port range def and populate BangSpan if valid
 				if pr.End != 0 {
-					thisScan.NetDeets.BangSpan = append(thisScan.NetDeets.BangSpan, pr)
+					ThisScan.NetDeets.BangSpan = append(ThisScan.NetDeets.BangSpan, pr)
 				}
 			} else { // Assume a "named list"; send to named lists eval
 				r1 = append(r1, item)
@@ -190,7 +190,7 @@ func getPortRange(s string) (uint16, uint16) {
 
 func (pr PortRange) Size() int {
 	return (int(pr.End) - int(pr.Start) + 1)
-	//for _, spanDef := range thisScan.NetDeets.BangSpan {
+	//for _, spanDef := range ThisScan.NetDeets.BangSpan {
 	//	prtot += (int(spanDef.End) - int(spanDef.Start) +1) //add up size of all defined/given port ranges
 }
 

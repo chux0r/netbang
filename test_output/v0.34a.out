@@ -1,0 +1,27 @@
+$> go version
+go version go1.20.7 linux/amd64
+$> uname -a|cut -d " " -f 11,10,7,8
+Debian 6.4.11-1kali1 x86_64 GNU/Linux
+$> ./netbang -t 2000 -p 20-25,80,111,443,445,1716,8080-8083 scanme.com
+
+Bang target: [scanme.com], Portcount: [15]
+=====================================================
+TCP portbangers unleashed...😎😎💀😎💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 15
+scanme.com Scan Results
+================================================================================
+[scanme.com:443] -->    [😎] OPEN
+[scanme.com:22] -->     [😎] OPEN
+[scanme.com:80] -->     [😎] OPEN
+[scanme.com:8080] -->   [💀] ERROR: dial tcp 54.229.140.24:8080: connect: connection refused
+[scanme.com:24] -->     [💀] ERROR: dial tcp 54.229.140.24:24: i/o timeout
+[scanme.com:445] -->    [💀] ERROR: dial tcp 54.229.140.24:445: i/o timeout
+[scanme.com:1716] -->   [💀] ERROR: dial tcp 54.229.140.24:1716: i/o timeout
+[scanme.com:21] -->     [💀] ERROR: dial tcp 54.229.140.24:21: i/o timeout
+[scanme.com:8082] -->   [💀] ERROR: dial tcp 54.229.140.24:8082: i/o timeout
+[scanme.com:111] -->    [💀] ERROR: dial tcp 54.229.140.24:111: i/o timeout
+[scanme.com:8083] -->   [💀] ERROR: dial tcp 54.229.140.24:8083: i/o timeout
+[scanme.com:25] -->     [💀] ERROR: dial tcp 54.229.140.24:25: i/o timeout
+[scanme.com:20] -->     [💀] ERROR: dial tcp 54.229.140.24:20: i/o timeout
+[scanme.com:8081] -->   [💀] ERROR: dial tcp 54.229.140.24:8081: i/o timeout
+[scanme.com:23] -->     [💀] ERROR: dial tcp 54.229.140.24:23: i/o timeout
