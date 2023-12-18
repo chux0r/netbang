@@ -1,0 +1,86 @@
+PS C:\Users\mongoose\workbench\dev\golang\netbang> go version
+go version go1.20.5 windows/amd64
+PS C:\Users\mongoose\workbench\dev\golang\netbang> systeminfo /fo csv | ConvertFrom-Csv | select "OS Name", "OS Version", "System Type" | Format-List
+
+
+OS Name     : Microsoft Windows 10 Enterprise
+OS Version  : 10.0.19045 N/A Build 19045
+System Type : x64-based PC
+
+
+
+PS C:\Users\mongoose\workbench\dev\golang\netbang> .\netbang.exe chux0r.org
+NetBang START. Host [chux0r.org], Portcount: [65]
+=====================================================
+NetBang jobs, running...
+😎😎💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+Recv'd job logs: 65.
+chux0r.org Scan Results
+================================================================================
+[chux0r.org:22] -->     [😎] OPEN
+[chux0r.org:80] -->     [😎] OPEN
+[chux0r.org:853] -->    [💀] ERROR: dial tcp 45.79.37.31:853: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:8443] -->   [💀] ERROR: dial tcp 45.79.37.31:8443: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:5060] -->   [💀] ERROR: dial tcp 45.79.37.31:5060: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:514] -->    [💀] ERROR: dial tcp 45.79.37.31:514: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:389] -->    [💀] ERROR: dial tcp 45.79.37.31:389: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:513] -->    [💀] ERROR: dial tcp 45.79.37.31:513: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:995] -->    [💀] ERROR: dial tcp 45.79.37.31:995: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:2484] -->   [💀] ERROR: dial tcp 45.79.37.31:2484: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:5800] -->   [💀] ERROR: dial tcp 45.79.37.31:5800: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:23] -->     [💀] ERROR: dial tcp 45.79.37.31:23: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:636] -->    [💀] ERROR: dial tcp 45.79.37.31:636: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:69] -->     [💀] ERROR: dial tcp 45.79.37.31:69: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:143] -->    [💀] ERROR: dial tcp 45.79.37.31:143: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:989] -->    [💀] ERROR: dial tcp 45.79.37.31:989: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:593] -->    [💀] ERROR: dial tcp 45.79.37.31:593: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:587] -->    [💀] ERROR: dial tcp 45.79.37.31:587: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:990] -->    [💀] ERROR: dial tcp 45.79.37.31:990: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:5061] -->   [💀] ERROR: dial tcp 45.79.37.31:5061: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:2375] -->   [💀] ERROR: dial tcp 45.79.37.31:2375: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:79] -->     [💀] ERROR: dial tcp 45.79.37.31:79: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:443] -->    [💀] ERROR: dial tcp 45.79.37.31:443: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:2323] -->   [💀] ERROR: dial tcp 45.79.37.31:2323: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:88] -->     [💀] ERROR: dial tcp 45.79.37.31:88: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:8080] -->   [💀] ERROR: dial tcp 45.79.37.31:8080: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:177] -->    [💀] ERROR: dial tcp 45.79.37.31:177: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:1434] -->   [💀] ERROR: dial tcp 45.79.37.31:1434: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:113] -->    [💀] ERROR: dial tcp 45.79.37.31:113: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:119] -->    [💀] ERROR: dial tcp 45.79.37.31:119: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:8008] -->   [💀] ERROR: dial tcp 45.79.37.31:8008: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:2483] -->   [💀] ERROR: dial tcp 45.79.37.31:2483: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:25] -->     [💀] ERROR: dial tcp 45.79.37.31:25: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:1337] -->   [💀] ERROR: dial tcp 45.79.37.31:1337: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:20] -->     [💀] ERROR: dial tcp 45.79.37.31:20: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:5900] -->   [💀] ERROR: dial tcp 45.79.37.31:5900: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:110] -->    [💀] ERROR: dial tcp 45.79.37.31:110: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:464] -->    [💀] ERROR: dial tcp 45.79.37.31:464: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:8081] -->   [💀] ERROR: dial tcp 45.79.37.31:8081: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:3306] -->   [💀] ERROR: dial tcp 45.79.37.31:3306: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:993] -->    [💀] ERROR: dial tcp 45.79.37.31:993: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:43] -->     [💀] ERROR: dial tcp 45.79.37.31:43: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:547] -->    [💀] ERROR: dial tcp 45.79.37.31:547: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:53] -->     [💀] ERROR: dial tcp 45.79.37.31:53: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:179] -->    [💀] ERROR: dial tcp 45.79.37.31:179: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:512] -->    [💀] ERROR: dial tcp 45.79.37.31:512: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:68] -->     [💀] ERROR: dial tcp 45.79.37.31:68: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:546] -->    [💀] ERROR: dial tcp 45.79.37.31:546: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:8088] -->   [💀] ERROR: dial tcp 45.79.37.31:8088: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:1270] -->   [💀] ERROR: dial tcp 45.79.37.31:1270: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:67] -->     [💀] ERROR: dial tcp 45.79.37.31:67: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:3333] -->   [💀] ERROR: dial tcp 45.79.37.31:3333: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:2222] -->   [💀] ERROR: dial tcp 45.79.37.31:2222: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:3389] -->   [💀] ERROR: dial tcp 45.79.37.31:3389: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:5432] -->   [💀] ERROR: dial tcp 45.79.37.31:5432: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:1521] -->   [💀] ERROR: dial tcp 45.79.37.31:1521: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:873] -->    [💀] ERROR: dial tcp 45.79.37.31:873: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:1433] -->   [💀] ERROR: dial tcp 45.79.37.31:1433: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:515] -->    [💀] ERROR: dial tcp 45.79.37.31:515: connectex: No connection could be made because the target machine actively refused it.
+[chux0r.org:111] -->    [💀] ERROR: dial tcp 45.79.37.31:111: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+[chux0r.org:21] -->     [💀] ERROR: dial tcp 45.79.37.31:21: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+[chux0r.org:139] -->    [💀] ERROR: dial tcp 45.79.37.31:139: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+[chux0r.org:135] -->    [💀] ERROR: dial tcp 45.79.37.31:135: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+[chux0r.org:445] -->    [💀] ERROR: dial tcp 45.79.37.31:445: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+[chux0r.org:137] -->    [💀] ERROR: dial tcp 45.79.37.31:137: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond.
+
