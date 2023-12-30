@@ -1,0 +1,30 @@
+[~/dev/golang/workspace/netbang] $> go version
+go version go1.20.7 linux/amd64
+[~/dev/golang/workspace/netbang] $> uname -a|cut -d " " -f 11,10,7,8
+Debian 6.4.11-1kali1 x86_64 GNU/Linux
+[~/dev/golang/workspace/netbang] $> go build netbang.go portfu.go resolver.go ifstat.go
+[~/dev/golang/workspace/netbang] $> ./netbang -p 80,389,1178,10000 scanme.org
+
+Network gateway/IF/IP:
+default via 192.168.50.1 dev wlan0 proto dhcp src 192.168.50.213 metric 600 
+192.168.50.0/24 dev wlan0 proto kernel scope link src 192.168.50.213 metric 600 
+
+Interfaces/state/MAC:
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: eth0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc fq_codel state DOWN mode DEFAULT group default qlen 1000
+    link/ether 80:fa:5b:80:73:07 brd ff:ff:ff:ff:ff:ff
+3: wlan0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UP mode DORMANT group default qlen 1000
+    link/ether f4:a4:75:b5:41:18 brd ff:ff:ff:ff:ff:ff
+
+Bang target: [scanme.org], Portcount: [4]
+=====================================================
+TCP portbangers unleashed...😎💀💀💀
+Jobs run: 4
+scanme.org Scan Results
+================================================================================
+[scanme.org:80] -->	[😎] OPEN
+[scanme.org:1178] -->	[💀] ERROR: dial tcp 45.33.32.156:1178: connect: connection refused
+[scanme.org:10000] -->	[💀] ERROR: dial tcp 45.33.32.156:10000: connect: connection refused
+[scanme.org:389] -->	[💀] ERROR: dial tcp 45.33.32.156:389: connect: connection refused
+

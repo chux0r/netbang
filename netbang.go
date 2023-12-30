@@ -242,6 +242,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 }
 
 func main() {
+	ifstat()
 	bangHost(ThisScan.NetDeets.PortList, ThisScan.Target.Addr, ThisScan.NetDeets.Protocol)
 }
 
