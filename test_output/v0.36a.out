@@ -1,0 +1,31 @@
+PS C:\Users\mongoose\dev\netbang> go version
+go version go1.20.6 windows/amd64
+PS C:\Users\mongoose\dev\netbang> systeminfo /fo csv | ConvertFrom-Csv | select "OS Name", "OS Version", "System Type" | Format-List
+
+
+OS Name     : Microsoft Windows 10 Enterprise
+OS Version  : 10.0.19045 N/A Build 19045
+System Type : x64-based PC
+PS C:\Users\mongoose\dev\netbang> ./netbang -env
+
+Network gateway/IF/IP:
+
+
+InterfaceAlias       : Ethernet 4
+InterfaceIndex       : 4
+InterfaceDescription : VirtualBox Host-Only Ethernet Adapter
+IPv4Address          : 192.168.56.1
+IPv6DefaultGateway   :
+IPv4DefaultGateway   :
+DNSServer            : fec0:0:0:ffff::1
+                       fec0:0:0:ffff::2
+                       fec0:0:0:ffff::3
+
+InterfaceAlias       : Wi-Fi
+InterfaceIndex       : 9
+InterfaceDescription : Intel(R) Wireless-AC 9560 160MHz
+NetProfile.Name      : Darvaza_5G-2
+IPv4Address          : 192.168.50.196
+IPv6DefaultGateway   :
+IPv4DefaultGateway   : 192.168.50.1
+DNSServer            : 192.168.50.1

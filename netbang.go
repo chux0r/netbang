@@ -108,6 +108,7 @@ func init() {
 
 	// TODO: complete flags/options commented out below:
 	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
+	envDo := flag.Bool("env", false, "Print environment, platform, and network details for your client endpoint.")
 	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
 	helpDo := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
 	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
@@ -128,14 +129,19 @@ func init() {
 	*/
 
 	flag.Parse()
-
+	if *envDo {
+		ifstat()
+		os.Exit(0)
+	}
 	// HELP MENU
 	if *helpDo || *helpDo2 || len(os.Args) <= 1 { //Launch help screen and exit
 		fmt.Print(
 			`
 USAGE:
+netbang [--env]
+	Print client network environment details.
 netbang [-h|--help]
-	Print this help screen
+	Print this help screen.
 netbang [-l|--lists] [<Listname>] 
 	Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing for <Listname>. 
 
