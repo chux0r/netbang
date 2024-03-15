@@ -57,6 +57,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -75,16 +76,50 @@ type DnsData struct {
 	RevNames []string     // IP reverse-lookup names
 }
 
-type TargetSpec struct {
+/* type TargetSpec struct {
 	Addr    string // names or IPs in string fmt == we should use net.Addr.String() for each element
 	Ip      net.IP // []byte, it's the methods we want, really
 	isIp    bool
 	isHostn bool
 	//Mac  net.HardwareAddr // layer 2; local net
 }
+*/
+
+// Things on the 'net. Targets, nodes, our stuff, everything. This is how we can describe them
+// Made to replace "TargetSpec".
+type NetThing struct {
+	Addr    string           // Unevaluated names or IPs
+	Hostn   string           // Hostname in "wah.blah.com" format. Can be just a domain name if DNS CNAME record is defined.
+	Domain  string           // Domains in "blah.com" format
+	Ip      net.IP           // []byte Using std library defs, no sense reinventing any of this
+	Mask    net.IPMask       // []byte
+	Port    uint16           // TCP or UDP portnumber
+	Mac     net.HardwareAddr // layer 2; local net
+	isIp    bool             // legacy carryover- make this into a method instead of static
+	isHostn bool             // legacy carryover- make this into a method instead of static
+}
+
+// (*NetThing).Network() and (*NetThing).String() implement the net.Addr interface, used in PacketConn.WriteTo()
+func (ts *NetThing) Network() string {
+	return "ip4:tcp"
+}
+
+// (*NetThing).Network() and (*NetThing).String() implement the net.Addr interface, used in PacketConn.WriteTo()
+func (ts *NetThing) String() string {
+	return fmt.Sprint(ts.Ip.String(), ":", strconv.Itoa(int(ts.Port)))
+}
+
+// Top-level domain, no dots, eg: "com", "edu", "org", etc.
+func (ts *NetThing) TLD() string {
+	if ts.Hostn == "" {
+		return ""
+	}
+	t := strings.Split(ts.Hostn, ".")
+	return t[len(t)-1]
+}
 
 type ScanSpec struct {
-	Target   TargetSpec
+	Target   NetThing
 	NetDeets NetSpec
 	Timeout  int32 //timeout in ms
 }
