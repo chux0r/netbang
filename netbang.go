@@ -1,22 +1,23 @@
+package main
 /******************************************************************************
 * netBang
 *
 *
-* Scrappy network scanner written in Go, mostly to answer what boost Go
-* concurrency gives. Also, fun to see how far I can get network-features-wise.
+* Scrappy network scanner written in Go. Written to re-explore the idea of
+* "scanning", whether old methods and assumptions remain valid, and how recon
+* tools could or should evolve to remain valuable in the "new realm".
 *
-* Props to Fyodor =) Nmap is still and will likely remain, the boooooomb ;)
-* In other words, this isn't supposed to replace or unthrone anything; maybe
-* just add to a class of cool tools I have used and love.
+* Props to Fyodor =) Nmap is still and will likely remain, the boooooomb!
+* In other words, netBang isn't meant to replace or dethrone anything. Just
+* adding to a class of cool tools and methods I have used and loved.
 *
-* Making this up as I go, by whatever entertains me most >8]
+* Making this up as I go, sometimes by whatever establishes the most
+* entertainment value >8]
 *
 * 14AUG2023
 * CT Geigner ("chux0r")
 *
-* 12DEC2023 - Renamed to "netBang", due to the fact that it's at this time a
-* noisy scanner. It is pretty fast though so there's that. I'll work on the
-* stealthy bits soon enough. --ctg
+* 12DEC2023 - Renamed to "netBang".
 *
 * What's being developed NOW-ish
 * ------------------------------------------------------
@@ -30,26 +31,21 @@
 *
 * Next features hit-list:
 * ------------------------------------------------------
-* Recon using Shodan data
-* Connect() Flags scan configurations (TCP half open, Xmas, etc)
+* Recon base + intel gathering using Shodan
 * Improved error processing/context-adding/reporting
-* OS-specific processing/interpretation of OS network stack error/status mesgs
 * Trap SIGINT(Ctrl-C), Stop scan and gather whatev report data exists
 *
 * Ideas! Fun to watch 'em rot in a pile. Amazing when I actually implement!
 * =============================================================================
+* No-touch recon capabilities
 * Multicast fun
 * BGP fun
 * DNS fun
 * SSL cert eval, and validation
 * IP history & "associations"
-* Packet constructor
-* Custom TCP flags options
-* more integration using stdlib net structures and interfaces
 * ICMP scanning/host ping and other ICMP uses
 * Hardware address/local network tomfoolery
 ******************************************************************************/
-package main
 
 import (
 	"flag"
@@ -63,40 +59,29 @@ import (
 )
 
 type NetSpec struct {
-	Protocol string   // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
-	PortList []uint16 // static port list
+	Protocol string       // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
+	PortList []uint16     // static port list
 	BangSpan []PortRange
-	//Flags    net.Flags		// xmas comes early, every time; (impl. syscall.RawConn)
-	//Packet 	 []byte			// packet constructor
 }
 
 type DnsData struct {
 	Dns      net.Resolver // DNS fun, but mostly lookups/resolution
-	Addrs    []string     // IPs resolved
+	Addrs    []string     // IPs resolved: future: need to convert to []net.IP/support IPv6
 	RevNames []string     // IP reverse-lookup names
 }
 
-/* type TargetSpec struct {
-	Addr    string // names or IPs in string fmt == we should use net.Addr.String() for each element
-	Ip      net.IP // []byte, it's the methods we want, really
-	isIp    bool
-	isHostn bool
-	//Mac  net.HardwareAddr // layer 2; local net
-}
-*/
-
-// Things on the 'net. Targets, nodes, our stuff, everything. This is how we can describe them
-// Made to replace "TargetSpec".
+// Targets, nodes, our stuff, everything. This is how we describe them
+// NOTE: supercedes "TargetSpec".
 type NetThing struct {
-	Addr    string           // Unevaluated names or IPs
-	Hostn   string           // Hostname in "wah.blah.com" format. Can be just a domain name if DNS CNAME record is defined.
-	Domain  string           // Domains in "blah.com" format
-	Ip      net.IP           // []byte Using std library defs, no sense reinventing any of this
-	Mask    net.IPMask       // []byte
-	Port    uint16           // TCP or UDP portnumber
+	Addr    string         // Unevaluated names or IPs
+	Hostn   string         // Hostname in "wah.blah.com" format. Can be just a domain name if DNS CNAME record is defined.
+	Domain  string         // Domains in "blah.com" format
+	Ip      net.IP         // []byte Using std library defs, no sense reinventing any of this
+	Mask    net.IPMask     // []byte
+	Port    uint16         // TCP or UDP portnumber
 	Mac     net.HardwareAddr // layer 2; local net
-	isIp    bool             // legacy carryover- make this into a method instead of static
-	isHostn bool             // legacy carryover- make this into a method instead of static
+	isIp    bool           // legacy carryover- make this into a method instead of static
+	isHostn bool           // legacy carryover- make this into a method instead of static
 }
 
 // (*NetThing).Network() and (*NetThing).String() implement the net.Addr interface, used in PacketConn.WriteTo()
@@ -137,6 +122,7 @@ const (
 
 var ThisScan ScanSpec
 var Resolv DnsData
+var BangMode uint8 = 1 // Modes: info: 0, scanning: 1, recon: 2
 
 func init() {
 	scanConstructor() // initialize our struct with reasonable default values
@@ -154,6 +140,7 @@ func init() {
 	portsfileDo := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
 	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
 	protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	reconDo := flag.String("recon", "", "\"The quietest scan? No scan at all.\"\n\t\t--chux0r\nList recon services and methods available with \"--recon list\" or specify service, method and any API keys needed.")
 	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
 	timeoutSet := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
 	/*
@@ -181,7 +168,7 @@ netbang [-l|--lists] [<Listname>]
 	Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing for <Listname>. 
 
 netbang [[FLAGS] <object(,optionals)>] <TARGET>
-	FLAGS
+	SCANNING FLAGS
 		[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
 		Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
 		(View named portlists with --lists)
@@ -191,17 +178,20 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 
 		[--proto] <tcp|udp>
 		Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
-		
+
 		[--resolver] <ipaddr> 
 		DNS resolver to use. Default is to use your system's local resolver.
 
 		[-t] <timeout, in ms>
 		Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
 	
+	RECON FLAGS
+		[--recon] <list> | [--recon] <service> <method> <apikey>
+		Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+
 	<TARGET> 
-		Object of scan. Target must be an IP address, an IP/CIDR range, or a valid 
-		hostname.
-	
+		Object of scan. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+			
 `)
 		/* On tap, but not ready yet --ctg
 
@@ -214,6 +204,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 
 		os.Exit(0)
 	} else if *listsDo != false || *listsDo2 != false {
+		BangMode = 0
 		if flag.Arg(0) == "" {
 			fmt.Print("\nPlaceholder for list available lists") // TODO: list lists func
 		} else {
@@ -222,6 +213,7 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		os.Exit(0)
 	}
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
+		BangMode = 1
 		ThisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
 			log.Print("Warning: Ports given with both -p and --ports. Combining.")
@@ -254,13 +246,45 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	}
 
 	if *protoDo {
+		BangMode = 1
 		if flag.Arg(0) == "" {
 			fmt.Print("\nWarning: No protocol listed with --proto. Using \"tcp\".")
 		} else {
 			ThisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
-			if ThisScan.NetDeets.Protocol != "tcp" && ThisScan.NetDeets.Protocol != "udp" {
-				log.Fatalf("Error: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0))
+			if ThisScan.NetDeets.Protocol != "tcp" && ThisScan.NetDeets.Protocol != "udp" { 
+				log.Fatalf("Error: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0)) // MOVE THESE PROTO CHECKS OUT TO RESPECTIVE MODULES (there will be more protocols allowed, and better contextual ways to validate, but it won't be here --ctg)
 			}
+		}
+	}
+	//[--recon] <list> | <shodan> <method> <apikey>
+	if len(*reconDo) > 0 {
+		
+		
+		/* TEST //
+			for i := 0; i < flag.NArg(); i++ {
+				fmt.Printf("\n\tTEST: Shodan call, arg [%d]: val [%s]", i, flag.Arg(i))
+			}
+			fmt.Printf("\n\tTarget val: [%s]\n", os.Args[len(os.Args)-1])
+		// TEST */
+		
+		
+		BangMode = 2		
+		if *reconDo == "list" {
+			fmt.Print("\nNinja recon services and methods available:")
+			for _, m := range Rmethods {
+				fmt.Printf("\n\t[ %s ]", m)
+			}
+			os.Exit(0)
+		} else if *reconDo == "shodan" {
+			ThisScan.Target.Addr = os.Args[len(os.Args)-1]         // last arg should always be the target
+			ThisScan.Target.Ip = net.ParseIP(ThisScan.Target.Addr) // valid IP given?
+			if ThisScan.Target.Ip == nil {
+				log.Fatalf("For method %s, %s is not a valid target IP address.", flag.Arg(0), ThisScan.Target.Addr)
+			}
+			shodn("hostip", flag.Arg(0), ThisScan.Target.Ip.String())
+			os.Exit(0)
+		} else {
+			log.Fatalf("Illegal recon service: [%s]", *reconDo)
 		}
 	}
 	/*
@@ -284,7 +308,9 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 
 func main() {
 	ifstat()
-	bangHost(ThisScan.NetDeets.PortList, ThisScan.Target.Addr, ThisScan.NetDeets.Protocol)
+	if BangMode == 1 {
+		bangHost(ThisScan.NetDeets.PortList, ThisScan.Target.Addr, ThisScan.NetDeets.Protocol)
+	}
 }
 
 /* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
@@ -292,8 +318,9 @@ func scanConstructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
 	ThisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
 	ThisScan.Target.isIp = false
+	ThisScan.Target.Ip = net.IP{127,0,0,1}
 	ThisScan.Target.isHostn = false
-	ThisScan.Target.Addr = "127.0.0.1"
+	ThisScan.Target.Addr = ThisScan.Target.Ip.String()
 }
 
 /*
