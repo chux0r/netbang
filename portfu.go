@@ -3,8 +3,13 @@ package main
 /******************************************************************************
 * portfu.go
 *
-* Functions used by netscanx specifically to support smart and quick port
+* Functions used by netBang specifically to support smart and quick port
 * define, parse, selection, combination, and teeing up for TCP and UDP scans
+*
+* 	"a UDP bar walks into A packet...
+* 	The bartender says, 'What'll you have buddy?'
+* 	A regular at the bar corner looks up and sneers, 'Don't even waste ye time!
+* 	He's never ordered.'"
 *
 * CT Geigner ("chux0r")
 * 21 SEPT 2023
