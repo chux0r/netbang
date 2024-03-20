@@ -2,3 +2,4 @@
 netbang.exe
 netbang
 .vscode/settings.json
+resolver_test.go

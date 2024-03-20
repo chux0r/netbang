@@ -56,24 +56,25 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"net/netip"
 )
 
+// Network details: 
 type NetSpec struct {
 	Protocol string       // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
 	PortList []uint16     // static port list
-	BangSpan []PortRange
+	BangSpan []PortRange  // optional port range
 }
 
-type DnsData struct {
-	Dns      net.Resolver // DNS fun, but mostly lookups/resolution
-	Addrs    []string     // IPs resolved: future: need to convert to []net.IP/support IPv6
-	RevNames []string     // IP reverse-lookup names
+type PortRange struct {
+	Start uint16
+	End   uint16
 }
 
 // Targets, nodes, our stuff, everything. This is how we describe them
 // NOTE: supercedes "TargetSpec".
 type NetThing struct {
-	Addr    string         // Unevaluated names or IPs
+	Addr    string         // Unevaluated address enetered by the end user. Ideally, should accomodate IPs, networks, hostnames, hostname:port, URL/URIs, MACs, hostname+protocol stuff. As the object of what we do, this is the <TARGET>, but can also hold data for any net thing we wish.
 	Hostn   string         // Hostname in "wah.blah.com" format. Can be just a domain name if DNS CNAME record is defined.
 	Domain  string         // Domains in "blah.com" format
 	Ip      net.IP         // []byte Using std library defs, no sense reinventing any of this
@@ -94,6 +95,16 @@ func (ts *NetThing) String() string {
 	return fmt.Sprint(ts.Ip.String(), ":", strconv.Itoa(int(ts.Port)))
 }
 
+// (*NetThing).IsIp() evaluates user-input Addr to determine if it is an IP (v4 or v6) address. Also sets (*NetThing).Ip if true.
+func (ts *NetThing) IsIp() bool {
+	ip, err := netip.ParseAddr(ts.Addr)
+	if err != nil {
+		return false
+	}
+	ts.Ip = ip.AsSlice()
+	return true
+}
+
 // Top-level domain, no dots, eg: "com", "edu", "org", etc.
 func (ts *NetThing) TLD() string {
 	if ts.Hostn == "" {
@@ -107,11 +118,6 @@ type ScanSpec struct {
 	Target   NetThing
 	NetDeets NetSpec
 	Timeout  int32 //timeout in ms
-}
-
-type PortRange struct {
-	Start uint16
-	End   uint16
 }
 
 // set up global constants for our port selection and use
