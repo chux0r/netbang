@@ -22,6 +22,11 @@ import (
 	"strings"
 )
 
+const (
+	adminPortRange uint   = 1024
+	maxPorts       uint16 = 65535
+)
+
 /* buildNamedPortsList() returns a slice of named, prebuilt uint16 port numbers useful for TCP and UDP scanning */
 func buildNamedPortsList(sp string) []uint16 {
 
@@ -102,8 +107,7 @@ func doPortsFinal(udd string) {
 	}
 }
 
-/*
-*****************************************************************************
+/******************************************************************************
 parsePortsCdl()
 
 Input: Comma-delimited string of possible ports, named port lists, or port
@@ -121,8 +125,7 @@ TODO:
 
 2) Dedup list (not sure here is the place tho)
 
-*****************************************************************************
-*/
+******************************************************************************/
 func parsePortsCdl(s string) ([]uint16, []string) {
 	var r1 []string  // named lists     ex: {"tcp_extra"}
 	var r2 []uint16  // ports           ex: {22,23,80,3389}

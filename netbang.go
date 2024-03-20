@@ -120,12 +120,6 @@ type ScanSpec struct {
 	Timeout  int32 //timeout in ms
 }
 
-// set up global constants for our port selection and use
-const (
-	adminPortRange uint   = 1024
-	maxPorts       uint16 = 65535
-)
-
 var ThisScan ScanSpec
 var Resolv DnsData
 var BangMode uint8 = 1 // Modes: info: 0, scanning: 1, recon: 2
