@@ -7,7 +7,7 @@ mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang --recon shodan <
 
 Unparsed Shodan data foor target 8.8.8.8:
 &{ [443 53] 8.8.8.8 Google LLC [dns.google] Google LLC [] AS15169 2024-03-19T12:35:11.470276 [0xc000002600 0xc000002780 0xc000002900] {Mountain View CA 0 37.4056 -122.0775 United States US   0}}
-mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang./netbang -p 80,389,1178,10000 scanme.org
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang -p 80,389,1178,10000 scanme.org
 
 Network gateway/IF/IP:
 default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 

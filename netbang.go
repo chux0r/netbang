@@ -1,8 +1,10 @@
 package main
 /******************************************************************************
-* netBang
+* netBang 
 *
-*
+* Go module: chux0r.org/netbang
+* Github:    https://github.com/chux0r/netbang
+* 
 * Scrappy network scanner written in Go. Written to re-explore the idea of
 * "scanning", whether old methods and assumptions remain valid, and how recon
 * tools could or should evolve to remain valuable in the "new realm".
@@ -11,9 +13,6 @@ package main
 * In other words, netBang isn't meant to replace or dethrone anything. Just
 * adding to a class of cool tools and methods I have used and loved.
 *
-* Making this up as I go, sometimes by whatever establishes the most
-* entertainment value >8]
-*
 * 14AUG2023
 * CT Geigner ("chux0r")
 *
@@ -21,8 +20,10 @@ package main
 *
 * What's being developed NOW-ish
 * ------------------------------------------------------
-* 1) Do raw IP sockets AF_INET stuff+packet constructor next.
-* 2) Whip up TCP and Xmas-tree scan once we have 1) implemented
+* 1) Raw IP sockets AF_INET stuff+packet constructor next.
+* 2) Silent recon stuff, OSINT, intel/data collection, API integrations
+* 3) IPv6 integration
+* 4) Target smarts
 * Rationale:
 * net.Dial() is pretty ok, but it abstracts lots of stuff. I'm stuck with a
 * full-3-way TCP handshake, since there's no controlling the connection or the
@@ -37,14 +38,13 @@ package main
 *
 * Ideas! Fun to watch 'em rot in a pile. Amazing when I actually implement!
 * =============================================================================
-* No-touch recon capabilities
 * Multicast fun
-* BGP fun
-* DNS fun
-* SSL cert eval, and validation
+* BGP/OSPF fun
 * IP history & "associations"
 * ICMP scanning/host ping and other ICMP uses
 * Hardware address/local network tomfoolery
+* WHOIS data
+* other interesting transport protocols nobody pays attention to? 
 ******************************************************************************/
 
 import (
@@ -59,10 +59,14 @@ import (
 	"net/netip"
 )
 
-// Network details: 
+// NetSpec defines networks, protocols, and details at layers  2, 3, and 4. 
+// Port definitions included since TCP and UDP and ubiquitous.
+// In many libraries, what I call "Protocol" is defined as "Network". See
+// https://en.wikipedia.org/wiki/List_of_IP_protocol_numbers for "ip:0xNN"- 
+// form combinations.
 type NetSpec struct {
-	Protocol string       // "tcp" - expand into "ProtoSpec" later to accommodate UDP, ICMP/Type/Subtype
-	PortList []uint16     // static port list
+	Protocol string       // arp, ppp, ip, ip4, ip6:icmp, ip:11, tcp, udp, etc
+	PortList []uint16     // static ports list
 	BangSpan []PortRange  // optional port range
 }
 
@@ -73,40 +77,68 @@ type PortRange struct {
 
 // Targets, nodes, our stuff, everything. This is how we describe them
 // NOTE: supercedes "TargetSpec".
-type NetThing struct {
-	Addr    string         // Unevaluated address enetered by the end user. Ideally, should accomodate IPs, networks, hostnames, hostname:port, URL/URIs, MACs, hostname+protocol stuff. As the object of what we do, this is the <TARGET>, but can also hold data for any net thing we wish.
+type Target struct {
+	Obj     string         // Unevaluated address/object input. can be IPs, networks, hostnames, hostname:port, URL/URIs, MACs, hostname+protocol, whatever.  In practice, it is usually the <TARGET>, but can describe any object we wish.
 	Hostn   string         // Hostname in "wah.blah.com" format. Can be just a domain name if DNS CNAME record is defined.
-	Domain  string         // Domains in "blah.com" format
 	Ip      net.IP         // []byte Using std library defs, no sense reinventing any of this
 	Mask    net.IPMask     // []byte
 	Port    uint16         // TCP or UDP portnumber
 	Mac     net.HardwareAddr // layer 2; local net
-	isIp    bool           // legacy carryover- make this into a method instead of static
-	isHostn bool           // legacy carryover- make this into a method instead of static
+	Lookups DnsData        // Name resolution, reverse lookups, DNS foo
 }
 
-// (*NetThing).Network() and (*NetThing).String() implement the net.Addr interface, used in PacketConn.WriteTo()
-func (ts *NetThing) Network() string {
+// (*Target).Network() and (*Target).String() implement the net.Obj interface, used in PacketConn.WriteTo()
+func (ts *Target) Network() string {
 	return "ip4:tcp"
 }
 
-// (*NetThing).Network() and (*NetThing).String() implement the net.Addr interface, used in PacketConn.WriteTo()
-func (ts *NetThing) String() string {
+// (*Target).Network() and (*Target).String() implement the net.Obj interface, used in PacketConn.WriteTo()
+func (ts *Target) String() string {
 	return fmt.Sprint(ts.Ip.String(), ":", strconv.Itoa(int(ts.Port)))
 }
 
-// (*NetThing).IsIp() evaluates user-input Addr to determine if it is an IP (v4 or v6) address. Also sets (*NetThing).Ip if true.
-func (ts *NetThing) IsIp() bool {
-	ip, err := netip.ParseAddr(ts.Addr)
+// (*Target).EvalObj() evaluates input .Obj to determine what it is. IP (v4 or v6) address, or hostname. Sets (*Target).(stuff) if true.
+// Returns code corresponding to results:
+// 0	Unknown/error
+// 1	IPv4 address
+// 2	IPv6 address
+// 3    Hostname
+func (ts *Target) EvalObj() uint8 {
+	// ipaddr?
+	ip, err := netip.ParseAddr(ts.Obj)
 	if err != nil {
-		return false
+		// not an IP address, continue
+	} else {
+		ts.Ip = ip.AsSlice() 
+		l := len(ts.Ip)
+		if l == 4 {
+			return 1 // is IPv4 addr
+		} else if l == 16 {
+			return 2 // is IPv6 addr
+		} else {
+			log.Printf("IP detect/parse error. Error value input: [%v]\n",ts.Ip)
+			return 0
+		} 
 	}
-	ts.Ip = ip.AsSlice()
-	return true
+	err = ts.Lookups.resolve(ts.Obj)
+	if err != nil {
+		log.Printf("Resolution failure for name \"%s\": %s\n", ts.Obj, err.Error())
+		return 0
+	}
+	ts.Hostn = ts.Obj
+	fmt.Printf("\n[%s] resolves to:",ts.Obj)
+	if len(ts.Lookups.IPs) > 1 { // returned multiple IPs
+		for _, ip := range ts.Lookups.IPs {
+			fmt.Printf("\n\t%s",ip)
+		}
+	} else {
+		fmt.Printf("\n\t%s",ts.Lookups.IPs[0])
+	}
+	return 3
 }
 
 // Top-level domain, no dots, eg: "com", "edu", "org", etc.
-func (ts *NetThing) TLD() string {
+func (ts *Target) TLD() string {
 	if ts.Hostn == "" {
 		return ""
 	}
@@ -115,7 +147,7 @@ func (ts *NetThing) TLD() string {
 }
 
 type ScanSpec struct {
-	Target   NetThing
+	Targ     Target
 	NetDeets NetSpec
 	Timeout  int32 //timeout in ms
 }
@@ -152,11 +184,13 @@ func init() {
 
 	flag.Parse()
 	if *envDo {
+		BangMode = 0
 		ifstat()
 		os.Exit(0)
 	}
 	// HELP MENU
 	if *helpDo || *helpDo2 || len(os.Args) <= 1 { //Launch help screen and exit
+		BangMode = 0
 		fmt.Print(
 			`
 USAGE:
@@ -269,19 +303,22 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		
 		
 		BangMode = 2		
+		ThisScan.Targ.Obj = os.Args[len(os.Args)-1]         // last arg should always be the target
 		if *reconDo == "list" {
 			fmt.Print("\nNinja recon services and methods available:")
 			for _, m := range Rmethods {
-				fmt.Printf("\n\t[ %s ]", m)
+				fmt.Printf("\n\t%s\n", m)
 			}
 			os.Exit(0)
 		} else if *reconDo == "shodan" {
-			ThisScan.Target.Addr = os.Args[len(os.Args)-1]         // last arg should always be the target
-			ThisScan.Target.Ip = net.ParseIP(ThisScan.Target.Addr) // valid IP given?
-			if ThisScan.Target.Ip == nil {
-				log.Fatalf("For method %s, %s is not a valid target IP address.", flag.Arg(0), ThisScan.Target.Addr)
+			ThisScan.Targ.Ip = net.ParseIP(ThisScan.Targ.Obj) // valid IP given?
+			if ThisScan.Targ.Ip == nil {
+				log.Fatalf("For method %s, %s is not a valid target IP address.", flag.Arg(0), ThisScan.Targ.Obj)
 			}
-			shodn("hostip", flag.Arg(0), ThisScan.Target.Ip.String())
+			shodn("hostip", flag.Arg(0), ThisScan.Targ.Ip.String())
+			os.Exit(0)
+		} else if *reconDo == "dns" {
+			ThisScan.Targ.Lookups.resolve(ThisScan.Targ.Obj)	
 			os.Exit(0)
 		} else {
 			log.Fatalf("Illegal recon service: [%s]", *reconDo)
@@ -297,33 +334,31 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 	*/
 	if *dnsrvDo {
 		if flag.Arg(0) == "" {
-			log.Fatal("Error: You must specify the IP of a DNS server to use with \"--resolver\".")
+			log.Print("Warning: No DNS server IP specified with \"--resolver\". Using default.")
 		} else {
 			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
 		}
 	}
-	ThisScan.Timeout = int32(*timeoutSet)          //
-	ThisScan.Target.Addr = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
+	ThisScan.Timeout = int32(*timeoutSet)
+	ThisScan.Targ.Obj = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
 }
 
 func main() {
 	ifstat()
 	if BangMode == 1 {
-		bangHost(ThisScan.NetDeets.PortList, ThisScan.Target.Addr, ThisScan.NetDeets.Protocol)
+		bangHost(ThisScan.NetDeets.PortList, ThisScan.Targ.Obj, ThisScan.NetDeets.Protocol)
 	}
 }
 
-/* scanConstructor() just starts us off with some sensible default values. Most defaults aim at "tcp scan" */
+/* scanConstructor() just start off with sensible default values. Most defaults aim at "tcp scan" context */
 func scanConstructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
 	ThisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
-	ThisScan.Target.isIp = false
-	ThisScan.Target.Ip = net.IP{127,0,0,1}
-	ThisScan.Target.isHostn = false
-	ThisScan.Target.Addr = ThisScan.Target.Ip.String()
+	ThisScan.Targ.Ip = net.IP{127,0,0,1}
+	ThisScan.Targ.Obj = ThisScan.Targ.Ip.String()
 }
 
-/*
+/******************************************************************************
 bangHost()
 
 Bangscan one host - For proto (tcp/udp) all ports given, scan single host and
@@ -337,7 +372,7 @@ format results
 			Catches results strings via IPC channel receiver.
 	OUTPUT
 			Scan results data/report
-*/
+******************************************************************************/
 func bangHost(pl []uint16, host string, proto string) {
 
 	prtot := 0 //port range total ports represented
@@ -400,7 +435,7 @@ func bangHost(pl []uint16, host string, proto string) {
 	printReport(scanReport)
 }
 
-/*
+/******************************************************************************
 bangTcpPort()
 
 	--:: [BANG, AS IN .:|BANG|:. *FUCKIN NOISY*] ::--
@@ -409,7 +444,7 @@ bangTcpPort()
 
 	Hits given target:port and records response.
 	Shoots results back through IPC channel.
-*/
+******************************************************************************/
 func bangTcpPort(t string, ch chan string, job *int) {
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
@@ -440,13 +475,13 @@ func bangTcpPort(t string, ch chan string, job *int) {
 	}
 }
 
-/*
+/******************************************************************************
 bangUdpPort()
 
 	What. Isup. With Datagrams, amirite?
 	Hits given UDP target:port and records response.
 	Shoots results back through IPC channel.
-*/
+******************************************************************************/
 func bangUdpPort(t string, ch chan string, job *int) {
 	rcvbuf := make([]byte, 1024)
 	*job++
@@ -477,7 +512,7 @@ func bangUdpPort(t string, ch chan string, job *int) {
 }
 
 func printReport(ss []string) {
-	fmt.Printf("\n%s Scan Results\n================================================================================", ThisScan.Target.Addr)
+	fmt.Printf("\n%s Scan Results\n================================================================================", ThisScan.Targ.Obj)
 	for _, result := range ss {
 		fmt.Printf("\n%s", result)
 	}

@@ -11,7 +11,8 @@ import (
 )
 
 var Rmethods = []string{
-	"\"shodan\" :: Shodan is a search engine for Internet-connected devices. Requires API key. See https://developer.shodan.io/api",
+	"[shodan] :: Shodan is a search engine for Internet-connected devices. Requires API key. See https://developer.shodan.io/api",
+	"[dns]    :: DNS performs a lookup on a hostname, reverse lookup on an IP address.",
 }
 
 // shodn() takes a method, an api key, and a target ip. If the API key is set as an environment var, pass an empty string.
@@ -40,7 +41,7 @@ func shodn(methd string, akey string, targ string) {
 			if err != nil {
 				log.Fatalf("Error getting Shodan data for target %s", targ)
 			}
-			fmt.Printf("\nUnparsed Shodan data foor target %s:\n%v", targ, targetdata)
+			fmt.Printf("\nUnparsed Shodan data for target %s:\n%v", targ, targetdata)
 		} else { // no key, no env, outta options
 			log.Fatalf("No Shodan API key set! Exiting")
 		}

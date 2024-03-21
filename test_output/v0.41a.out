@@ -1,0 +1,101 @@
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ go version
+go version go1.20.3 linux/amd64
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ uname -a|cut -d " " -f 1,3,4,15,16
+Linux 6.5.0-25-generic #25~22.04.1-Ubuntu x86_64 GNU/Linux
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang --recon dns amazon.com
+
+DNS lookup: [amazon.com] Resolver: [1.1.1.1:53]
+
+Host [amazon.com] resolves as:
+        IP #1: 52.94.236.248
+        IP #2: 205.251.242.103
+        IP #3: 54.239.28.85
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang --recon shodan <api key redacted> 1.1.1.1
+
+Unparsed Shodan data for target 1.1.1.1:
+&{ [161 2082 2083 69 2086 2087 2095 80 8880 8080 53 8443 443 2096] 1.1.1.1 Cloudflare, Inc. [one.one.one.one] APNIC and Cloudflare DNS Resolver project [] AS13335 2024-03-21T14:09:07.078561 [0xc0000f6180 0xc0000f6300 0xc0000f6480 0xc0000f6600 0xc0000f6780 0xc0000f6900 0xc0000f6a80 0xc0000f6c00 0xc0000f6d80 0xc0000f6f00 0xc0000f7080 0xc0000f7200 0xc0000f7380 0xc0000f7500 0xc0000f7680] {The Rocks NSW 0 -33.85923 151.2081 Australia AU   0}}
+
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./netbang scanme.org
+
+Network gateway/IF/IP:
+default via 10.0.2.2 dev enp0s3 proto dhcp metric 100 
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 100 
+169.254.0.0/16 dev enp0s3 scope link metric 1000 
+
+Interfaces/state/MAC:
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000
+    link/ether 08:00:27:2c:8c:11 brd ff:ff:ff:ff:ff:ff
+
+Bang target: [scanme.org], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...😎😎💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 64
+scanme.org Scan Results
+================================================================================
+[scanme.org:80] -->     [😎] OPEN
+[scanme.org:22] -->     [😎] OPEN
+[scanme.org:68] -->     [💀] ERROR: dial tcp 45.33.32.156:68: connect: connection refused
+[scanme.org:8443] -->   [💀] ERROR: dial tcp 45.33.32.156:8443: connect: connection refused
+[scanme.org:119] -->    [💀] ERROR: dial tcp 45.33.32.156:119: connect: connection refused
+[scanme.org:143] -->    [💀] ERROR: dial tcp 45.33.32.156:143: connect: connection refused
+[scanme.org:177] -->    [💀] ERROR: dial tcp 45.33.32.156:177: connect: connection refused
+[scanme.org:179] -->    [💀] ERROR: dial tcp 45.33.32.156:179: connect: connection refused
+[scanme.org:464] -->    [💀] ERROR: dial tcp 45.33.32.156:464: connect: connection refused
+[scanme.org:2222] -->   [💀] ERROR: dial tcp 45.33.32.156:2222: connect: connection refused
+[scanme.org:67] -->     [💀] ERROR: dial tcp 45.33.32.156:67: connect: connection refused
+[scanme.org:53] -->     [💀] ERROR: dial tcp 45.33.32.156:53: connect: connection refused
+[scanme.org:25] -->     [💀] ERROR: dial tcp 45.33.32.156:25: connect: connection refused
+[scanme.org:43] -->     [💀] ERROR: dial tcp 45.33.32.156:43: connect: connection refused
+[scanme.org:2375] -->   [💀] ERROR: dial tcp 45.33.32.156:2375: connect: connection refused
+[scanme.org:2483] -->   [💀] ERROR: dial tcp 45.33.32.156:2483: connect: connection refused
+[scanme.org:636] -->    [💀] ERROR: dial tcp 45.33.32.156:636: connect: connection refused
+[scanme.org:2484] -->   [💀] ERROR: dial tcp 45.33.32.156:2484: connect: connection refused
+[scanme.org:3389] -->   [💀] ERROR: dial tcp 45.33.32.156:3389: connect: connection refused
+[scanme.org:853] -->    [💀] ERROR: dial tcp 45.33.32.156:853: connect: connection refused
+[scanme.org:873] -->    [💀] ERROR: dial tcp 45.33.32.156:873: connect: connection refused
+[scanme.org:8088] -->   [💀] ERROR: dial tcp 45.33.32.156:8088: connect: connection refused
+[scanme.org:5800] -->   [💀] ERROR: dial tcp 45.33.32.156:5800: connect: connection refused
+[scanme.org:993] -->    [💀] ERROR: dial tcp 45.33.32.156:993: connect: connection refused
+[scanme.org:5900] -->   [💀] ERROR: dial tcp 45.33.32.156:5900: connect: connection refused
+[scanme.org:995] -->    [💀] ERROR: dial tcp 45.33.32.156:995: connect: connection refused
+[scanme.org:8008] -->   [💀] ERROR: dial tcp 45.33.32.156:8008: connect: connection refused
+[scanme.org:1270] -->   [💀] ERROR: dial tcp 45.33.32.156:1270: connect: connection refused
+[scanme.org:1337] -->   [💀] ERROR: dial tcp 45.33.32.156:1337: connect: connection refused
+[scanme.org:8080] -->   [💀] ERROR: dial tcp 45.33.32.156:8080: connect: connection refused
+[scanme.org:1433] -->   [💀] ERROR: dial tcp 45.33.32.156:1433: connect: connection refused
+[scanme.org:8081] -->   [💀] ERROR: dial tcp 45.33.32.156:8081: connect: connection refused
+[scanme.org:1434] -->   [💀] ERROR: dial tcp 45.33.32.156:1434: connect: connection refused
+[scanme.org:23] -->     [💀] ERROR: dial tcp 45.33.32.156:23: connect: connection refused
+[scanme.org:389] -->    [💀] ERROR: dial tcp 45.33.32.156:389: connect: connection refused
+[scanme.org:512] -->    [💀] ERROR: dial tcp 45.33.32.156:512: connect: connection refused
+[scanme.org:513] -->    [💀] ERROR: dial tcp 45.33.32.156:513: connect: connection refused
+[scanme.org:514] -->    [💀] ERROR: dial tcp 45.33.32.156:514: connect: connection refused
+[scanme.org:515] -->    [💀] ERROR: dial tcp 45.33.32.156:515: connect: connection refused
+[scanme.org:20] -->     [💀] ERROR: dial tcp 45.33.32.156:20: connect: connection refused
+[scanme.org:2323] -->   [💀] ERROR: dial tcp 45.33.32.156:2323: connect: connection refused
+[scanme.org:587] -->    [💀] ERROR: dial tcp 45.33.32.156:587: connect: connection refused
+[scanme.org:593] -->    [💀] ERROR: dial tcp 45.33.32.156:593: connect: connection refused
+[scanme.org:547] -->    [💀] ERROR: dial tcp 45.33.32.156:547: connect: connection refused
+[scanme.org:3306] -->   [💀] ERROR: dial tcp 45.33.32.156:3306: connect: connection refused
+[scanme.org:3333] -->   [💀] ERROR: dial tcp 45.33.32.156:3333: connect: connection refused
+[scanme.org:5060] -->   [💀] ERROR: dial tcp 45.33.32.156:5060: connect: connection refused
+[scanme.org:989] -->    [💀] ERROR: dial tcp 45.33.32.156:989: connect: connection refused
+[scanme.org:5432] -->   [💀] ERROR: dial tcp 45.33.32.156:5432: connect: connection refused
+[scanme.org:990] -->    [💀] ERROR: dial tcp 45.33.32.156:990: connect: connection refused
+[scanme.org:88] -->     [💀] ERROR: dial tcp 45.33.32.156:88: connect: connection refused
+[scanme.org:69] -->     [💀] ERROR: dial tcp 45.33.32.156:69: connect: connection refused
+[scanme.org:110] -->    [💀] ERROR: dial tcp 45.33.32.156:110: connect: connection refused
+[scanme.org:1521] -->   [💀] ERROR: dial tcp 45.33.32.156:1521: i/o timeout
+[scanme.org:5061] -->   [💀] ERROR: dial tcp 45.33.32.156:5061: i/o timeout
+[scanme.org:21] -->     [💀] ERROR: dial tcp 45.33.32.156:21: i/o timeout
+[scanme.org:79] -->     [💀] ERROR: dial tcp 45.33.32.156:79: i/o timeout
+[scanme.org:139] -->    [💀] ERROR: dial tcp 45.33.32.156:139: i/o timeout
+[scanme.org:443] -->    [💀] ERROR: dial tcp 45.33.32.156:443: i/o timeout
+[scanme.org:445] -->    [💀] ERROR: dial tcp 45.33.32.156:445: i/o timeout
+[scanme.org:111] -->    [💀] ERROR: dial tcp 45.33.32.156:111: i/o timeout
+[scanme.org:546] -->    [💀] ERROR: dial tcp 45.33.32.156:546: i/o timeout
+[scanme.org:135] -->    [💀] ERROR: dial tcp 45.33.32.156:135: i/o timeout
+[scanme.org:113] -->    [💀] ERROR: dial tcp 45.33.32.156:113: i/o timeout
+[scanme.org:137] -->    [💀] ERROR: dial tcp 45.33.32.156:137: i/o timeout
