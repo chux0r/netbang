@@ -1,6 +1,6 @@
 ```
 Name:     netBang
-Version:  0.41 Alpha
+Version:  0.42 Alpha
 Date:     21MAR2024
 Author:   Chuck Geigner *chux0r*
 Org:      MegaOhm.net
