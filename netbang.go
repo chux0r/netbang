@@ -120,7 +120,7 @@ func (ts *Target) EvalObj() uint8 {
 			return 0
 		} 
 	}
-	err = ts.Lookups.resolve(ts.Obj)
+	err = ts.Lookups.get(ts.Obj)
 	if err != nil {
 		log.Printf("Resolution failure for name \"%s\": %s\n", ts.Obj, err.Error())
 		return 0
@@ -152,92 +152,103 @@ type ScanSpec struct {
 	Timeout  int32 //timeout in ms
 }
 
+type ReconSpec struct {
+	Mode    string
+	Method  string
+	APIkey  string
+	Args    []string
+}
+
 var ThisScan ScanSpec
-var Resolv DnsData
-var BangMode uint8 = 1 // Modes: info: 0, scanning: 1, recon: 2
+var ThisRecon ReconSpec
+var BangMode uint8 = 0 // Modes: info: 0, scanning: 1, recon: 2 -- SAFETY ON - default to "not scan"
 
 func init() {
-	scanConstructor() // initialize our struct with reasonable default values
-
-	// TODO: complete flags/options commented out below:
+	constructor() 
+	// CLI FLAG CONFIGS
 	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
-	envDo := flag.Bool("env", false, "Print environment, platform, and network details for your client endpoint.")
+	envDo        := flag.Bool("env", false, "Print environment, platform, arch, and network details for your client.")
 	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
-	helpDo := flag.Bool("h", false, "Pull up the detailed \"help\" screen.")
-	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
-	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
-	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
-	portsDo := flag.String("p", "", "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
-	portsDo2 := flag.String("ports", "", "Same as \"-p\", above.")
-	portsfileDo := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
+	helpDo       := flag.Bool("h", false, "Pull up a detailed \"help\" screen and exit.")
+	helpDo2      := flag.Bool("help", false, "Same as \"-h\", above.")
+	listsDo      := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
+	listsDo2     := flag.Bool("lists", false, "Same as \"-l\", above.")
+	dnsrvDo      := flag.Bool("ns", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	portsDo      := flag.String("p", "", "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
+	portsDo2     := flag.String("ports", "", "Same as \"-p\", above.")
+	portsfileDo  := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
 	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
-	protoDo := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	reconDo := flag.String("recon", "", "\"The quietest scan? No scan at all.\"\n\t\t--chux0r\nList recon services and methods available with \"--recon list\" or specify service, method and any API keys needed.")
-	dnsrvDo := flag.Bool("resolver", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
-	timeoutSet := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
+	protoDo      := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	reconDo      := flag.String("recon", "", "Invoke recon services using: \"--recon <service> <method> <apikey>\". List services and methods available with \"--recon list\".")
+	timeoutSet   := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
 	/*
 		verboseDo  := flag.Bool("v", false, "Verbose runtime output")
 		verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
 		verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
 		verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
 	*/
-
 	flag.Parse()
-	if *envDo {
-		BangMode = 0
-		ifstat()
-		os.Exit(0)
-	}
+	// END FLAG EVAL+PARSE
+
 	// HELP MENU
 	if *helpDo || *helpDo2 || len(os.Args) <= 1 { //Launch help screen and exit
 		BangMode = 0
 		fmt.Print(
-			`
-USAGE:
-netbang [--env]
-	Print client network environment details.
-netbang [-h|--help]
-	Print this help screen.
-netbang [-l|--lists] [<Listname>] 
-	Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing for <Listname>. 
-
-netbang [[FLAGS] <object(,optionals)>] <TARGET>
-	SCANNING FLAGS
-		[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
-		Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
-		(View named portlists with --lists)
-
-		[-pf|--portsfile] <(directory path/)filename>
-		Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
-
-		[--proto] <tcp|udp>
-		Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
-
-		[--resolver] <ipaddr> 
-		DNS resolver to use. Default is to use your system's local resolver.
-
-		[-t] <timeout, in ms>
-		Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+				`
+	USAGE:
+	netbang [-h|--help]
+		Print this help screen.
+	netbang [-l|--lists] [<Listname>] 
+		Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing within <Listname>. 
 	
-	RECON FLAGS
-		[--recon] <list> | [--recon] <service> <method> <apikey>
-		Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
-
-	<TARGET> 
-		Object of scan. Target must be an IP address, an IP/CIDR range, or a valid hostname.
-			
-`)
-		/* On tap, but not ready yet --ctg
-
-		[--dryrun]
-			Print activities list, pre-validate targets, print config and pre-conditions.
-			Dry-run does NOT execute the scan.
-
-		[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)>
-			Specify activity(s): scan, tcpscan, udpscan, or dnsinfo. Default is "scan". */
-
+	netbang [[FLAGS] <object(,optionals)>] <TARGET>
+		CONFIG FLAGS
+			[--env]
+			Print local client environment details.
+			[--ns] <IP(:port)> 
+			Set DNS resolver to IP (and optionally port, 53 is default). Default setup uses 1.1.1.1:53 (Cloudflare).
+	
+		SCANNING FLAGS
+			[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+			Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
+			(View named portlists with --lists)
+	
+			[-pf|--portsfile] <(directory path/)filename>
+			Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
+	
+			[--proto] <tcp|udp>
+			Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
+	
+			[-t] <timeout, in ms>
+			Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+		
+		RECON FLAGS
+			[--recon] <list> | [--recon] <service> <method> <apikey>
+			Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+	
+		<TARGET> 
+			Object of scan or recon. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+		
+		NOTE: Scanning and Recon are mutually exclusive. Setting scanning flags and recon flags together in the same invocation will behave unpredictably.
+				
+	`)
+			/* On tap, but not ready yet --ctg
+	
+			[--dryrun]
+				Print activities list, pre-validate targets, print config and pre-conditions.
+				Dry-run does NOT execute the scan.
+	
+			[-x|--exec] <scan(,tcpscan,udpscan,dnsinfo)>
+				Specify activity(s): scan, tcpscan, udpscan, or dnsinfo. Default is "scan". */
+	
 		os.Exit(0)
-	} else if *listsDo != false || *listsDo2 != false {
+	} 
+	if *envDo {
+		BangMode = 0
+		ifstat()
+	}
+
+	if *listsDo || *listsDo2 {
 		BangMode = 0
 		if flag.Arg(0) == "" {
 			fmt.Print("\nPlaceholder for list available lists") // TODO: list lists func
@@ -286,72 +297,58 @@ netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		} else {
 			ThisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
 			if ThisScan.NetDeets.Protocol != "tcp" && ThisScan.NetDeets.Protocol != "udp" { 
-				log.Fatalf("Error: Invalid protocol: %s! Allowed protocols are \"tcp\" or \"udp\".", flag.Arg(0)) // MOVE THESE PROTO CHECKS OUT TO RESPECTIVE MODULES (there will be more protocols allowed, and better contextual ways to validate, but it won't be here --ctg)
+				log.Fatalf("Error: Invalid protocol: [%s] Allowed protocols: \"tcp\" or \"udp\".", flag.Arg(0)) // MOVE THESE PROTO CHECKS OUT TO RESPECTIVE MODULES (there will be more protocols allowed, and better contextual ways to validate, but it won't be here --ctg)
 			}
 		}
 	}
 	//[--recon] <list> | <shodan> <method> <apikey>
 	if len(*reconDo) > 0 {
-		
-		
-		/* TEST //
-			for i := 0; i < flag.NArg(); i++ {
-				fmt.Printf("\n\tTEST: Shodan call, arg [%d]: val [%s]", i, flag.Arg(i))
-			}
-			fmt.Printf("\n\tTarget val: [%s]\n", os.Args[len(os.Args)-1])
-		// TEST */
-		
-		
-		BangMode = 2		
-		ThisScan.Targ.Obj = os.Args[len(os.Args)-1]         // last arg should always be the target
-		if *reconDo == "list" {
-			fmt.Print("\nNinja recon services and methods available:")
-			for _, m := range Rmethods {
-				fmt.Printf("\n\t%s\n", m)
-			}
-			os.Exit(0)
-		} else if *reconDo == "shodan" {
-			ThisScan.Targ.Ip = net.ParseIP(ThisScan.Targ.Obj) // valid IP given?
-			if ThisScan.Targ.Ip == nil {
-				log.Fatalf("For method %s, %s is not a valid target IP address.", flag.Arg(0), ThisScan.Targ.Obj)
-			}
-			shodn("hostip", flag.Arg(0), ThisScan.Targ.Ip.String())
-			os.Exit(0)
-		} else if *reconDo == "dns" {
-			ThisScan.Targ.Lookups.resolve(ThisScan.Targ.Obj)	
-			os.Exit(0)
-		} else {
-			log.Fatalf("Illegal recon service: [%s]", *reconDo)
+		BangMode = 2	
+		ThisRecon = ReconSpec{
+			Mode: *reconDo,        //"shodan", "list", "dns", etc
+			Args: flag.Args(),
 		}
 	}
 	/*
 		if *doDo {
 			if flag.Arg(0) == "" {
-				fmt.Print("Error: You must specify which netscanx activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
+				fmt.Print("Error: You must specify which activity to do after \"--do\" (tcpscan, udpscan, dnsinfo). Default is tcpscan.")
 				os.Exit(1)
 			}
 		}
 	*/
-	if *dnsrvDo {
+	if *dnsrvDo { // set up alternate name resolution server in our dns dialer
 		if flag.Arg(0) == "" {
-			log.Print("Warning: No DNS server IP specified with \"--resolver\". Using default.")
+			log.Printf("Warning: No IP specified with switch \"--ns\". Using default [%s:%d].",Nsd.IPAddr.String(),Nsd.Port)
 		} else {
-			setCustomResolver(&Resolv.Dns, flag.Arg(0)) // pass it our DnsInfo struct to populate/use
+			err := Nsd.setResolver(flag.Arg(0))
+			if err != nil {
+				log.Fatalf("Error using \"--ns\" switch: %s - Exiting.", err.Error())
+			}
+			fmt.Println("Custom DNS resolver: ", flag.Arg(0))
 		}
 	}
+	if flag.NFlag() == 0 { // no flags set == "quick scan mode"
+		BangMode = 1
+	}
 	ThisScan.Timeout = int32(*timeoutSet)
-	ThisScan.Targ.Obj = os.Args[len(os.Args)-1] // last arg will always be the target hostname/addr
+	ThisScan.Targ.Obj = os.Args[len(os.Args)-1] // SET <TARGET> :: last arg will always be the target
 }
 
 func main() {
-	ifstat()
-	if BangMode == 1 {
+	if BangMode == 0 {
+		fmt.Println("Information-only mode, complete.")
+	} else if BangMode == 1 {         //scan
 		bangHost(ThisScan.NetDeets.PortList, ThisScan.Targ.Obj, ThisScan.NetDeets.Protocol)
+	} else if BangMode == 2 {  //recon
+		recon(ThisRecon.Mode, ThisRecon.Args, ThisScan.Targ.Obj)
+	} else {
+		log.Fatalln("Unnkown execution mode. Exiting.")
 	}
 }
 
 /* scanConstructor() just start off with sensible default values. Most defaults aim at "tcp scan" context */
-func scanConstructor() {
+func constructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
 	ThisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
 	ThisScan.Targ.Ip = net.IP{127,0,0,1}
@@ -486,7 +483,7 @@ func bangUdpPort(t string, ch chan string, job *int) {
 	rcvbuf := make([]byte, 1024)
 	*job++
 	joblog := fmt.Sprintf("[%s] -->\t", t)
-	udpaddr, err := net.ResolveUDPAddr("udp", t)
+	udpaddr, _ := net.ResolveUDPAddr("udp", t)
 	conn, err := net.DialUDP("udp", nil, udpaddr) // TODO: add default max time wait to this + Make configurable
 	if err != nil {
 		fmt.Printf("💀")
@@ -517,4 +514,29 @@ func printReport(ss []string) {
 		fmt.Printf("\n%s", result)
 	}
 	fmt.Print("\n")
+}
+
+/******************************************************************************
+recon
+
+******************************************************************************/
+func recon (mode string, args []string, target string) {
+	//if *reconDo == "list" {
+	switch mode {
+	case "list":
+		fmt.Print("\nNinja recon services and methods available:")
+		for _, m := range Rmethods {
+			fmt.Printf("\n\t%s", m)
+		}
+		os.Exit(0)
+	case "shodan":
+		// args[0] == method (hostip, etc) :: args[1] == API key 
+		shodn(args[0], args[1], target) //NOTE "hostip" method is only method available
+		os.Exit(0)
+	case "dns":
+		ThisScan.Targ.Lookups.get(ThisScan.Targ.Obj)	
+		os.Exit(0)
+	default:
+		log.Fatalf("Unsupported recon service: [%s]", mode)
+	}
 }

@@ -1,0 +1,201 @@
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> date
+Sun Mar 24 18:00:01 CDT 2024
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> go version
+go version go1.20.7 linux/amd64
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> uname -a
+Linux dreadnought 6.4.0-kali3-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.4.11-1kali1 (2023-08-21) x86_64 GNU/Linux
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> go build ./netbang.go ifstat.go portfu.go recon.go resolver.go 
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> ./netbang --proto tcp scanme.org
+
+Bang target: [scanme.org], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...😎😎💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+scanme.org Scan Results
+================================================================================
+[scanme.org:22] -->     [😎] OPEN
+[scanme.org:80] -->     [😎] OPEN
+[scanme.org:546] -->    [💀] ERROR: dial tcp 45.33.32.156:546: connect: connection refused
+[scanme.org:8443] -->   [💀] ERROR: dial tcp 45.33.32.156:8443: connect: connection refused
+[scanme.org:20] -->     [💀] ERROR: dial tcp 45.33.32.156:20: connect: connection refused
+[scanme.org:2222] -->   [💀] ERROR: dial tcp 45.33.32.156:2222: connect: connection refused
+[scanme.org:1433] -->   [💀] ERROR: dial tcp 45.33.32.156:1433: connect: connection refused
+[scanme.org:23] -->     [💀] ERROR: dial tcp 45.33.32.156:23: connect: connection refused
+[scanme.org:993] -->    [💀] ERROR: dial tcp 45.33.32.156:993: connect: connection refused
+[scanme.org:464] -->    [💀] ERROR: dial tcp 45.33.32.156:464: connect: connection refused
+[scanme.org:8008] -->   [💀] ERROR: dial tcp 45.33.32.156:8008: connect: connection refused
+[scanme.org:995] -->    [💀] ERROR: dial tcp 45.33.32.156:995: connect: connection refused
+[scanme.org:21] -->     [💀] ERROR: dial tcp 45.33.32.156:21: connect: connection refused
+[scanme.org:53] -->     [💀] ERROR: dial tcp 45.33.32.156:53: connect: connection refused
+[scanme.org:514] -->    [💀] ERROR: dial tcp 45.33.32.156:514: connect: connection refused
+[scanme.org:43] -->     [💀] ERROR: dial tcp 45.33.32.156:43: connect: connection refused
+[scanme.org:3333] -->   [💀] ERROR: dial tcp 45.33.32.156:3333: connect: connection refused
+[scanme.org:110] -->    [💀] ERROR: dial tcp 45.33.32.156:110: connect: connection refused
+[scanme.org:8081] -->   [💀] ERROR: dial tcp 45.33.32.156:8081: connect: connection refused
+[scanme.org:1434] -->   [💀] ERROR: dial tcp 45.33.32.156:1434: connect: connection refused
+[scanme.org:68] -->     [💀] ERROR: dial tcp 45.33.32.156:68: connect: connection refused
+[scanme.org:587] -->    [💀] ERROR: dial tcp 45.33.32.156:587: connect: connection refused
+[scanme.org:3306] -->   [💀] ERROR: dial tcp 45.33.32.156:3306: connect: connection refused
+[scanme.org:5800] -->   [💀] ERROR: dial tcp 45.33.32.156:5800: connect: connection refused
+[scanme.org:990] -->    [💀] ERROR: dial tcp 45.33.32.156:990: connect: connection refused
+[scanme.org:179] -->    [💀] ERROR: dial tcp 45.33.32.156:179: connect: connection refused
+[scanme.org:5060] -->   [💀] ERROR: dial tcp 45.33.32.156:5060: connect: connection refused
+[scanme.org:8080] -->   [💀] ERROR: dial tcp 45.33.32.156:8080: connect: connection refused
+[scanme.org:389] -->    [💀] ERROR: dial tcp 45.33.32.156:389: connect: connection refused
+[scanme.org:2375] -->   [💀] ERROR: dial tcp 45.33.32.156:2375: connect: connection refused
+[scanme.org:139] -->    [💀] ERROR: dial tcp 45.33.32.156:139: connect: connection refused
+[scanme.org:8088] -->   [💀] ERROR: dial tcp 45.33.32.156:8088: connect: connection refused
+[scanme.org:177] -->    [💀] ERROR: dial tcp 45.33.32.156:177: connect: connection refused
+[scanme.org:113] -->    [💀] ERROR: dial tcp 45.33.32.156:113: connect: connection refused
+[scanme.org:636] -->    [💀] ERROR: dial tcp 45.33.32.156:636: connect: connection refused
+[scanme.org:1337] -->   [💀] ERROR: dial tcp 45.33.32.156:1337: connect: connection refused
+[scanme.org:2483] -->   [💀] ERROR: dial tcp 45.33.32.156:2483: connect: connection refused
+[scanme.org:512] -->    [💀] ERROR: dial tcp 45.33.32.156:512: connect: connection refused
+[scanme.org:593] -->    [💀] ERROR: dial tcp 45.33.32.156:593: connect: connection refused
+[scanme.org:5900] -->   [💀] ERROR: dial tcp 45.33.32.156:5900: connect: connection refused
+[scanme.org:853] -->    [💀] ERROR: dial tcp 45.33.32.156:853: connect: connection refused
+[scanme.org:25] -->     [💀] ERROR: dial tcp 45.33.32.156:25: connect: connection refused
+[scanme.org:2484] -->   [💀] ERROR: dial tcp 45.33.32.156:2484: connect: connection refused
+[scanme.org:1270] -->   [💀] ERROR: dial tcp 45.33.32.156:1270: connect: connection refused
+[scanme.org:445] -->    [💀] ERROR: dial tcp 45.33.32.156:445: connect: connection refused
+[scanme.org:873] -->    [💀] ERROR: dial tcp 45.33.32.156:873: connect: connection refused
+[scanme.org:443] -->    [💀] ERROR: dial tcp 45.33.32.156:443: connect: connection refused
+[scanme.org:513] -->    [💀] ERROR: dial tcp 45.33.32.156:513: connect: connection refused
+[scanme.org:547] -->    [💀] ERROR: dial tcp 45.33.32.156:547: connect: connection refused
+[scanme.org:119] -->    [💀] ERROR: dial tcp 45.33.32.156:119: connect: connection refused
+[scanme.org:79] -->     [💀] ERROR: dial tcp 45.33.32.156:79: connect: connection refused
+[scanme.org:989] -->    [💀] ERROR: dial tcp 45.33.32.156:989: connect: connection refused
+[scanme.org:1521] -->   [💀] ERROR: dial tcp 45.33.32.156:1521: connect: connection refused
+[scanme.org:135] -->    [💀] ERROR: dial tcp 45.33.32.156:135: connect: connection refused
+[scanme.org:69] -->     [💀] ERROR: dial tcp 45.33.32.156:69: connect: connection refused
+[scanme.org:88] -->     [💀] ERROR: dial tcp 45.33.32.156:88: connect: connection refused
+[scanme.org:5432] -->   [💀] ERROR: dial tcp 45.33.32.156:5432: connect: connection refused
+[scanme.org:67] -->     [💀] ERROR: dial tcp 45.33.32.156:67: connect: connection refused
+[scanme.org:5061] -->   [💀] ERROR: dial tcp 45.33.32.156:5061: connect: connection refused
+[scanme.org:3389] -->   [💀] ERROR: dial tcp 45.33.32.156:3389: connect: connection refused
+[scanme.org:2323] -->   [💀] ERROR: dial tcp 45.33.32.156:2323: connect: connection refused
+[scanme.org:143] -->    [💀] ERROR: dial tcp 45.33.32.156:143: connect: connection refused
+[scanme.org:111] -->    [💀] ERROR: dial tcp 45.33.32.156:111: connect: connection refused
+[scanme.org:137] -->    [💀] ERROR: dial tcp 45.33.32.156:137: connect: connection refused
+[scanme.org:515] -->    [💀] ERROR: dial tcp 45.33.32.156:515: connect: connection refused
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> ./netbang --recon shodan hostip SPHWHX9D7fYS3T4PigejRwu0JPIEQ9CV 205.251.242.103
+
+Unparsed Shodan data for target 205.251.242.103:
+&{ [80 443] 205.251.242.103 Amazon.com, Inc. [www.amazon.com yp.amazon.com uedata.amazon.com home.amazon.com origin2-www.amazon.co.jp www.amazon.jp edgeflow-dp.aero.47cf2c8c9-frontier.amazon.com iphone.amazon.com www.amazon.de amazon.com.au amazon.co.uk edgeflow.aero.47cf2c8c9-frontier.amazon.com edgeflow.aero.bfbdc3ca1-frontier.amazon.co.uk amazon.jp buybox.amazon.com www.amazon.com.au www.amazon.co.jp corporate.amazon.com uedata.amazon.co.uk us.amazon.com origin2-www.amazon.com edgeflow.aero.4d5ad1d2b-frontier.amazon.co.jp origin-www.amazon.com amzn.com origin-www.amazon.de amazon.com amazon.de www.amazon.co.uk origin-www.amazon.com.au edgeflow-dp.aero.4d5ad1d2b-frontier.amazon.co.jp origin-www.amazon.co.uk huddles.amazon.com origin-www.amazon.co.jp amazon.co.jp buckeye-retail-website.amazon.com edgeflow-dp.aero.04f01a85e-frontier.amazon.com.au s3-console-us-standard.console.aws.amazon.com edgeflow.aero.abe2c2f23-frontier.amazon.de www.amzn.com edgeflow.aero.04f01a85e-frontier.amazon.com.au] Amazon.com, Inc. [] AS16509 2024-03-24T20:36:45.525161 [0xc0000ba180 0xc0000ba300] {Ashburn VA 0 39.04372 -77.48749 United States US   0}}
+
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> ./netbang
+
+        USAGE:
+        netbang [-h|--help]
+                Print this help screen.
+        netbang [-l|--lists] [<Listname>] 
+                Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing within <Listname>. 
+
+        netbang [[FLAGS] <object(,optionals)>] <TARGET>
+                CONFIG FLAGS
+                        [--env]
+                        Print local client environment details.
+                        [--ns] <IP(:port)> 
+                        Set DNS resolver to IP (and optionally port, 53 is default). Default setup uses 1.1.1.1:53 (Cloudflare).
+
+                SCANNING FLAGS
+                        [-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+                        Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
+                        (View named portlists with --lists)
+
+                        [-pf|--portsfile] <(directory path/)filename>
+                        Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
+
+                        [--proto] <tcp|udp>
+                        Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
+
+                        [-t] <timeout, in ms>
+                        Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+
+                RECON FLAGS
+                        [--recon] <list> | [--recon] <service> <method> <apikey>
+                        Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+
+                <TARGET> 
+                        Object of scan or recon. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+
+                NOTE: Scanning and Recon are mutually exclusive. Setting scanning flags and recon flags together in the same invocation will behave unpredictably.
+
+        mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> ./netbang 127.0.0.1
+
+Bang target: [127.0.0.1], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:20] -->      [💀] ERROR: dial tcp 127.0.0.1:20: connect: connection refused
+[127.0.0.1:21] -->      [💀] ERROR: dial tcp 127.0.0.1:21: connect: connection refused
+[127.0.0.1:119] -->     [💀] ERROR: dial tcp 127.0.0.1:119: connect: connection refused
+[127.0.0.1:8443] -->    [💀] ERROR: dial tcp 127.0.0.1:8443: connect: connection refused
+[127.0.0.1:113] -->     [💀] ERROR: dial tcp 127.0.0.1:113: connect: connection refused
+[127.0.0.1:995] -->     [💀] ERROR: dial tcp 127.0.0.1:995: connect: connection refused
+[127.0.0.1:1270] -->    [💀] ERROR: dial tcp 127.0.0.1:1270: connect: connection refused
+[127.0.0.1:111] -->     [💀] ERROR: dial tcp 127.0.0.1:111: connect: connection refused
+[127.0.0.1:990] -->     [💀] ERROR: dial tcp 127.0.0.1:990: connect: connection refused
+[127.0.0.1:88] -->      [💀] ERROR: dial tcp 127.0.0.1:88: connect: connection refused
+[127.0.0.1:989] -->     [💀] ERROR: dial tcp 127.0.0.1:989: connect: connection refused
+[127.0.0.1:1521] -->    [💀] ERROR: dial tcp 127.0.0.1:1521: connect: connection refused
+[127.0.0.1:143] -->     [💀] ERROR: dial tcp 127.0.0.1:143: connect: connection refused
+[127.0.0.1:22] -->      [💀] ERROR: dial tcp 127.0.0.1:22: connect: connection refused
+[127.0.0.1:5432] -->    [💀] ERROR: dial tcp 127.0.0.1:5432: connect: connection refused
+[127.0.0.1:1434] -->    [💀] ERROR: dial tcp 127.0.0.1:1434: connect: connection refused
+[127.0.0.1:139] -->     [💀] ERROR: dial tcp 127.0.0.1:139: connect: connection refused
+[127.0.0.1:8008] -->    [💀] ERROR: dial tcp 127.0.0.1:8008: connect: connection refused
+[127.0.0.1:5061] -->    [💀] ERROR: dial tcp 127.0.0.1:5061: connect: connection refused
+[127.0.0.1:5900] -->    [💀] ERROR: dial tcp 127.0.0.1:5900: connect: connection refused
+[127.0.0.1:8080] -->    [💀] ERROR: dial tcp 127.0.0.1:8080: connect: connection refused
+[127.0.0.1:3389] -->    [💀] ERROR: dial tcp 127.0.0.1:3389: connect: connection refused
+[127.0.0.1:137] -->     [💀] ERROR: dial tcp 127.0.0.1:137: connect: connection refused
+[127.0.0.1:5060] -->    [💀] ERROR: dial tcp 127.0.0.1:5060: connect: connection refused
+[127.0.0.1:135] -->     [💀] ERROR: dial tcp 127.0.0.1:135: connect: connection refused
+[127.0.0.1:8081] -->    [💀] ERROR: dial tcp 127.0.0.1:8081: connect: connection refused
+[127.0.0.1:1433] -->    [💀] ERROR: dial tcp 127.0.0.1:1433: connect: connection refused
+[127.0.0.1:993] -->     [💀] ERROR: dial tcp 127.0.0.1:993: connect: connection refused
+[127.0.0.1:2222] -->    [💀] ERROR: dial tcp 127.0.0.1:2222: connect: connection refused
+[127.0.0.1:110] -->     [💀] ERROR: dial tcp 127.0.0.1:110: connect: connection refused
+[127.0.0.1:177] -->     [💀] ERROR: dial tcp 127.0.0.1:177: connect: connection refused
+[127.0.0.1:1337] -->    [💀] ERROR: dial tcp 127.0.0.1:1337: connect: connection refused
+[127.0.0.1:8088] -->    [💀] ERROR: dial tcp 127.0.0.1:8088: connect: connection refused
+[127.0.0.1:389] -->     [💀] ERROR: dial tcp 127.0.0.1:389: connect: connection refused
+[127.0.0.1:2484] -->    [💀] ERROR: dial tcp 127.0.0.1:2484: connect: connection refused
+[127.0.0.1:3306] -->    [💀] ERROR: dial tcp 127.0.0.1:3306: connect: connection refused
+[127.0.0.1:2323] -->    [💀] ERROR: dial tcp 127.0.0.1:2323: connect: connection refused
+[127.0.0.1:2375] -->    [💀] ERROR: dial tcp 127.0.0.1:2375: connect: connection refused
+[127.0.0.1:69] -->      [💀] ERROR: dial tcp 127.0.0.1:69: connect: connection refused
+[127.0.0.1:443] -->     [💀] ERROR: dial tcp 127.0.0.1:443: connect: connection refused
+[127.0.0.1:3333] -->    [💀] ERROR: dial tcp 127.0.0.1:3333: connect: connection refused
+[127.0.0.1:179] -->     [💀] ERROR: dial tcp 127.0.0.1:179: connect: connection refused
+[127.0.0.1:23] -->      [💀] ERROR: dial tcp 127.0.0.1:23: connect: connection refused
+[127.0.0.1:68] -->      [💀] ERROR: dial tcp 127.0.0.1:68: connect: connection refused
+[127.0.0.1:67] -->      [💀] ERROR: dial tcp 127.0.0.1:67: connect: connection refused
+[127.0.0.1:2483] -->    [💀] ERROR: dial tcp 127.0.0.1:2483: connect: connection refused
+[127.0.0.1:5800] -->    [💀] ERROR: dial tcp 127.0.0.1:5800: connect: connection refused
+[127.0.0.1:25] -->      [💀] ERROR: dial tcp 127.0.0.1:25: connect: connection refused
+[127.0.0.1:79] -->      [💀] ERROR: dial tcp 127.0.0.1:79: connect: connection refused
+[127.0.0.1:80] -->      [💀] ERROR: dial tcp 127.0.0.1:80: connect: connection refused
+[127.0.0.1:43] -->      [💀] ERROR: dial tcp 127.0.0.1:43: connect: connection refused
+[127.0.0.1:53] -->      [💀] ERROR: dial tcp 127.0.0.1:53: connect: connection refused
+[127.0.0.1:464] -->     [💀] ERROR: dial tcp 127.0.0.1:464: connect: connection refused
+[127.0.0.1:514] -->     [💀] ERROR: dial tcp 127.0.0.1:514: connect: connection refused
+[127.0.0.1:547] -->     [💀] ERROR: dial tcp 127.0.0.1:547: connect: connection refused
+[127.0.0.1:546] -->     [💀] ERROR: dial tcp 127.0.0.1:546: connect: connection refused
+[127.0.0.1:515] -->     [💀] ERROR: dial tcp 127.0.0.1:515: connect: connection refused
+[127.0.0.1:587] -->     [💀] ERROR: dial tcp 127.0.0.1:587: connect: connection refused
+[127.0.0.1:512] -->     [💀] ERROR: dial tcp 127.0.0.1:512: connect: connection refused
+[127.0.0.1:513] -->     [💀] ERROR: dial tcp 127.0.0.1:513: connect: connection refused
+[127.0.0.1:593] -->     [💀] ERROR: dial tcp 127.0.0.1:593: connect: connection refused
+[127.0.0.1:853] -->     [💀] ERROR: dial tcp 127.0.0.1:853: connect: connection refused
+[127.0.0.1:873] -->     [💀] ERROR: dial tcp 127.0.0.1:873: connect: connection refused
+[127.0.0.1:636] -->     [💀] ERROR: dial tcp 127.0.0.1:636: connect: connection refused
+[127.0.0.1:445] -->     [💀] ERROR: dial tcp 127.0.0.1:445: connect: connection refused
+mongoose@dreadnought:[~/dev/golang/workspace/netbang] $> ./netbang --recon dns github.com
+
+DNS lookup: [github.com] Resolver: [1.1.1.1] Port: 53
+Host [github.com] resolves as:
+        IP #1: 140.82.112.4

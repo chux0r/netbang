@@ -1,7 +1,7 @@
 ```
 Name:     netBang
-Version:  0.42 Alpha
-Date:     21MAR2024
+Version:  0.43 Alpha
+Date:     24MAR2024
 Author:   Chuck Geigner *chux0r*
 Org:      MegaOhm.net
 Web:      https://github.com/chux0r/netbang

@@ -14,6 +14,7 @@ import (
 	"net"
 	"time"
 	"log"
+	"strings"
 )
 
 type DnsData struct {
@@ -22,41 +23,24 @@ type DnsData struct {
 	RevNames []string     // IP reverse-lookup names
 }
 
-type NameSvr struct {
-	DnsDialer	*net.Dialer
-	IPAddr		net.IP
-	Port		uint16
-}
-
-var Ns = NameSvr{
-	DnsDialer: &net.Dialer{
-		Timeout: time.Second * time.Duration(5), // default is NO FUCKING TIMEOUT... uhh yeah always set this
-		FallbackDelay: 300 * time.Millisecond,   // ipv6 fallback (default, but want to be intentional here)
-		KeepAlive: -1,                           // no keepalives. Our Timeout is shorter anyway. We'll deal.
-	},
-	IPAddr:	net.IP{1,1,1,1},                     // TODO: link this to --resolver flag
-	Port: 53,
-}
- 
 /******************************************************************************
-(*DnsData).resolve()
+(*DnsData).get()
 
-DNS lookup of a hostname (forward) or IP (reverse) string.
-Populates DnsData with any/all resolved IPs.
+Populate *DnsData by doing DNS hostname (forward) or IP (reverse) lookup.
 
 Also: Since we do not want to use Go or Google default resolver configs, this
 always sets up a custom dialer for name resolution
 ******************************************************************************/
-func (dd *DnsData)resolve(s string) error { 
+func (dd *DnsData)get(s string) error { 
 	var err error
 	dd.Dns.StrictErrors = false // enable partial results
-	resolvr := getSocketString(Ns.IPAddr.String(), Ns.Port) //"default: 1.1.1.1:53 (Cloudflare dns)"     
+	resolvr := getSocketString(Nsd.IPAddr.String(), Nsd.Port) //"default: 1.1.1.1:53 (Cloudflare dns)"     
 	ctx := context.Background()
 	dd.Dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 		//d := net.Dialer{Timeout: time.Second * time.Duration(5)}
-		return Ns.DnsDialer.DialContext(ctx, network, resolvr)
+		return Nsd.DnsDialer.DialContext(ctx, network, resolvr)
 	}
-	fmt.Printf("\nDNS lookup: [%s] Resolver: [%s] Port: %d\n", s, Ns.IPAddr.String(), Ns.Port)
+	fmt.Printf("\nDNS lookup: [%s] Resolver: [%s] Port: %d", s, Nsd.IPAddr.String(), Nsd.Port)
 	// eval: IP, hostname, or "other" 
 	t := net.ParseIP(s)
 	if t != nil {	// is IP, do reverse lookup instead
@@ -84,19 +68,52 @@ func (dd *DnsData)resolve(s string) error {
 	return err
 }
 
-/******************************************************************************
-setCustomResolver
+type NameSvr struct {
+	DnsDialer	*net.Dialer
+	IPAddr		net.IP
+	Port		uint16
+}
 
-Sets a custom resolver, by IP. Port 53 is assumed.
-Ex: setCustomResolver(&Resolv.Dns, "8.8.8.8")
+// Name service dialer
+var Nsd = NameSvr{
+	DnsDialer: &net.Dialer{
+		Timeout: time.Second * time.Duration(5), // default is NO FUCKING TIMEOUT... uhh yeah always set this
+		FallbackDelay: 300 * time.Millisecond,   // ipv6 fallback (default, but want to be intentional here)
+		KeepAlive: -1,                           // no keepalives. Our Timeout is shorter anyway. We'll deal.
+	},
+	IPAddr:	net.IP{1,1,1,1},                     // TODO: link this to --resolver flag
+	Port: 53,
+}
+
+/******************************************************************************
+setResolver
+
+Defines a custom resolver to use by IP and (optionally) port number
+Ex: setResolver("8.8.8.8:53")
 ******************************************************************************/
-func setCustomResolver(dns *net.Resolver, ip string) {
-	dnsHost := getSocketString(ip, uint16(53)) // TODO :: validate given IP
-	dns.PreferGo = true
-	dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
-		d := net.Dialer{
-			Timeout: time.Second * time.Duration(5), // FUTURE CONSIDERATION: Set custom timeout?
+func (n *NameSvr)setResolver(ipp string) error {
+	nsdef := strings.Split(ipp, ":")
+	n.IPAddr = net.ParseIP(nsdef[0])
+	if n.IPAddr == nil {
+		return fmt.Errorf("nameserver-set error: invalid address [%s]", nsdef[0])
+	}
+	if len(nsdef) >= 2 {
+		if len(nsdef) > 2 {
+			log.Printf("Warning: Nameserver-set overloaded. Sent -> [%s] Using host -> [%s] and port -> [%s], discarding excess parameters.", ipp, nsdef[0], nsdef[1])
 		}
-		return d.DialContext(ctx, network, dnsHost)
+		p, valid := numStringToInt32(nsdef[1])
+		if valid {
+			n.Port = uint16(p) 
+			log.Printf("Nameserver-set: [%s:%d]",n.IPAddr.String(),n.Port)
+		} else {
+			return fmt.Errorf("nameserver-set error: invalid port [%s]", nsdef[1])
+		}
+		return nil
+	} else if len(nsdef) == 1 {
+		log.Printf("Nameserver-set host IP: [%s]",nsdef[0])
+		return nil
+	} else {
+		log.Fatalf("Error: Nameserver-set logic/OOB. Exiting.")
+		return fmt.Errorf("Error: Nameserver-set logic/OOB")// if the code is good, the user should never end up in this branch, ever.
 	}
 }

@@ -41,7 +41,7 @@ func shodn(methd string, akey string, targ string) {
 			if err != nil {
 				log.Fatalf("Error getting Shodan data for target %s", targ)
 			}
-			fmt.Printf("\nUnparsed Shodan data for target %s:\n%v", targ, targetdata)
+			fmt.Printf("\nUnparsed Shodan data for target %s:\n%v\n\n", targ, targetdata)
 		} else { // no key, no env, outta options
 			log.Fatalf("No Shodan API key set! Exiting")
 		}
