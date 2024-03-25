@@ -528,11 +528,19 @@ func recon (mode string, args []string, target string) {
 		for _, m := range Rmethods {
 			fmt.Printf("\n\t%s", m)
 		}
+		fmt.Print("\n")
 		os.Exit(0)
 	case "shodan":
-		// args[0] == method (hostip, etc) :: args[1] == API key 
-		shodn(args[0], args[1], target) //NOTE "hostip" method is only method available
-		os.Exit(0)
+		// args[0] == method (hostip, etc) :: args[1] == API key (optional) args[2] == target
+		if len(args) > 2 { 
+			shodn(args[0], args[1], target) //NOTE "hostip" method is only method available
+			os.Exit(0)
+		} else if len(args) == 2 {  // method, target (no API key)
+			shodn(args[0], "", target)
+			os.Exit(0)
+		} else {
+			log.Fatalln("Not enough parameters calling mode [", mode, "]. \nUSAGE: netbang --recon shodan <method> (<optional_apikey>) <TARGET>")
+		}
 	case "dns":
 		ThisScan.Targ.Lookups.get(ThisScan.Targ.Obj)	
 		os.Exit(0)
