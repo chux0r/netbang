@@ -1,4 +1,4 @@
-package main
+package osutils
 
 import (
 	"fmt"
@@ -10,17 +10,19 @@ import (
 
 /*
 *******************************************************************************
-ifstat()
+Ifstat()
 
 Get and display some network interface info on whatever rig from which the user
 decides to launch this mofo. Target linux, windows, darwin/MACOS. Maybe android
-and bsds later. AIX never LOL IBM...
+and bsds later. AIX? Never. LOL IBM...
 
 --ctg
 29DEC2023
+
+27 MAR 2024 :: Moved into package "utils" --ctg 
 *******************************************************************************
 */
-func ifstat() {
+func Ifstat() {
 
 	/*
 	Based on operating system, dump some useful network info: MIN: interface, IP, gateway/route

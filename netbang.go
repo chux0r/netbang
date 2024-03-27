@@ -57,6 +57,10 @@ import (
 	"strings"
 	"time"
 	"net/netip"
+	
+	"chux0r.org/portfu" // note: these are all local, see "replace" declarations in go.mod
+	"chux0r.org/osutils"
+	"chux0r.org/uglynum"
 )
 
 // NetSpec defines networks, protocols, and details at layers  2, 3, and 4. 
@@ -66,8 +70,8 @@ import (
 // form combinations.
 type NetSpec struct {
 	Protocol string       // arp, ppp, ip, ip4, ip6:icmp, ip:11, tcp, udp, etc
-	PortList []uint16     // static ports list
-	BangSpan []PortRange  // optional port range
+	PortList portfu.PortList     // static ports list (recasts to []unit16)
+	BangSpan []portfu.PortRange  // optional port ranges
 }
 
 type PortRange struct {
@@ -109,7 +113,7 @@ func (ts *Target) EvalObj() uint8 {
 	if err != nil {
 		// not an IP address, continue
 	} else {
-		ts.Ip = ip.AsSlice() 
+		ts.Ip = ip.AsSlice() // Do you think the person who wrote this func was, like, cracking up and giggling uncontrollably at "ASSLICE", or do you think they did it with a straight face? I know I couldn't. I wonder about these things. --chux0r 
 		l := len(ts.Ip)
 		if l == 4 {
 			return 1 // is IPv4 addr
@@ -245,7 +249,7 @@ func init() {
 	} 
 	if *envDo {
 		BangMode = 0
-		ifstat()
+		osutils.Ifstat()
 	}
 
 	if *listsDo || *listsDo2 {
@@ -267,10 +271,10 @@ func init() {
 			log.Print("Warning: Multiple input files given with both -pf and --portsfile. Combining.")
 		}
 		if len(*portsDo) > 0 { // ifdef -p
-			doPortsFinal(*portsDo)
+			finalizePortsList(*portsDo)
 		}
 		if len(*portsDo2) > 0 { // ifdef -ports
-			doPortsFinal(*portsDo2)
+			finalizePortsList(*portsDo2)
 		}
 		if len(*portsfileDo) > 0 { // ifdef -pf read given user port config file
 			log.Printf("Opening user-defined port config file [%s].", *portsfileDo)
@@ -286,7 +290,7 @@ func init() {
 			}
 			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
 			fmt.Printf("\nData read from cf file: >> %s", string(p))
-			doPortsFinal(string(p))
+			finalizePortsList(string(p))
 		}
 	}
 
@@ -350,7 +354,7 @@ func main() {
 /* scanConstructor() just start off with sensible default values. Most defaults aim at "tcp scan" context */
 func constructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
-	ThisScan.NetDeets.PortList = buildNamedPortsList("tcp_short")
+	ThisScan.NetDeets.PortList = portfu.InitDefault("tcp_short")
 	ThisScan.Targ.Ip = net.IP{127,0,0,1}
 	ThisScan.Targ.Obj = ThisScan.Targ.Ip.String()
 }
@@ -383,9 +387,9 @@ func bangHost(pl []uint16, host string, proto string) {
 	job := 0
 	if len(pl) <= 0 { // if no ports specified, use short default common ports
 		if proto == "tcp" {
-			pl = buildNamedPortsList("tcp_short")
+			pl = portfu.InitDefault("tcp_short")
 		} else if proto == "udp" {
-			pl = buildNamedPortsList("udp_short")
+			pl = portfu.InitDefault("udp_short")
 		} else {
 			log.Fatalf("Error: Invalid protocol: [%s]! Allowed protocols are \"tcp\" or \"udp\".", proto)
 		}
@@ -393,7 +397,7 @@ func bangHost(pl []uint16, host string, proto string) {
 	fmt.Printf("\nBang target: [%s], Portcount: [%d]\n=====================================================", host, jobtot)
 	// scan static port defs
 	for _, port := range pl { // For all ports given, bang each one and report results
-		sock := getSocketString(host, port)
+		sock := portfu.GetSocketString(host, port)
 		if proto == "tcp" {
 			go bangTcpPort(sock, scanIpc, &job) // Bang bang! Single host:port per call
 		} else if proto == "udp" {
@@ -406,7 +410,7 @@ func bangHost(pl []uint16, host string, proto string) {
 	if prtot > 0 {
 		for _, spanDef := range ThisScan.NetDeets.BangSpan {
 			for j := spanDef.Start; j <= spanDef.End; j++ {
-				sock := getSocketString(host, j)
+				sock := portfu.GetSocketString(host, j)
 				if proto == "tcp" {
 					go bangTcpPort(sock, scanIpc, &job) // Bang bang! Single host:port per call
 				} else if proto == "udp" {
@@ -546,5 +550,78 @@ func recon (mode string, args []string, target string) {
 		os.Exit(0)
 	default:
 		log.Fatalf("Unsupported recon service: [%s]", mode)
+	}
+}
+
+/******************************************************************************
+parsePortsCdl()
+
+Input: Comma-delimited string of possible ports, named port lists, or port
+number range. Uses uglynum.NumStringToInt32() to extract portnumbers in usable
+numeric form, and flags when the value in the list is not a number.
+
+Processing: Parses comma-delimited input. Updates identified port ranges to 
+NetDeets.BangSpan.
+
+Returns:
+	 	Ports: []uint16
+		(assumed) port ranges: []string
+
+Notes:
+	Moved back into netbang main from portfu. This is more about parsing 
+		netbang-specific inputs than it is about wrangling network ports.
+	Would be nice to have:
+		Dedup list? (not sure here is the place tho)
+******************************************************************************/
+func parsePortsCdl(s string) ([]uint16, []string) {
+	var r1 []string  // named lists     ex: {"tcp_extra"}
+	var r2 []uint16  // ports           ex: {22,23,80,3389}
+	var pr portfu.PortRange // port range defs ex: {"80-90","100-3000"}
+	var port int32
+	var isnum bool
+	// fmt.Println("\nParsePortsCDL input string: ", s) TEST
+	list := strings.Split(s, ",")
+	for _, item := range list { // Eval each list item
+		port, isnum = uglynum.NumStringToInt32(item)
+		if isnum == false { // put the name in the list of names
+			if port == 45 { // 45d is 0x2d, a.k.a. the hyphen. Possible num1-num2 range.
+				pr = portfu.ArgsToPortRange(item) // Check port range def and populate BangSpan if valid
+				if pr.End != 0 {
+					ThisScan.NetDeets.BangSpan = append(ThisScan.NetDeets.BangSpan, pr)
+				}
+			} else { // Assume a "named list"; send to named lists eval
+				r1 = append(r1, item)
+			}
+		} else { // put numbers in the list of ports
+			r2 = append(r2, uint16(port))
+		}
+	}
+	// fmt.Println("\nPort range defs strings slice: ", r0) // TEST
+	// fmt.Println("\nNamed portlist strings slice: ", r1) // TEST
+	// fmt.Println("\nUint16 ports slice: ", r2)  // TEST
+	return r2, r1
+}
+
+/********************************************************************************
+finalizePortsList()
+
+take user-defined input string, parse and convert numbers, identify named lists,
+then append all to Netdeets.Portlist
+
+Was named "doPortsFinal()" up to v0.43a
+********************************************************************************/
+func finalizePortsList(udi string) {
+	pn, nl := parsePortsCdl(udi) // convert port strings to uint16; separate port numbers (pn) from named lists (nl)
+	ThisScan.NetDeets.PortList.Add(pn)
+	if len(nl) > 0 { // if we have named lists...
+		for i := 0; i < len(nl); i++ { // ...parse each...
+			// resize the portlist appropriately and reassemble
+			newports := portfu.InitDefault(nl[i]) // ...into a []uint16 slice...
+			if newports != nil {                   // ...and if each is valid...
+				ThisScan.NetDeets.PortList.Add(newports) // ...add to master list
+			} else {
+				log.Fatalf("Error: Undefined list given: \"%s\"", nl[i])
+			}
+		}
 	}
 }

@@ -1,0 +1,215 @@
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./test.bash 
+Build test by: mongoose@thoughtcrime:/home/mongoose/workbench/dev/golang/netbang
+Date:Wed Mar 27 04:29:41 PM CDT 2024
+GO versiongo version go1.20.3 linux/amd64
+Platform OS/arch details:Linux thoughtcrime 6.5.0-26-generic #26~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Mar 12 10:22:43 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+go build ./netbang.go ./ifstat.go ./portfu.go ./recon.go ./resolver.go
+stat ./ifstat.go: no such file or directory
+NETBANG TEST CASES:
+./netbang
+
+	USAGE:
+	netbang [-h|--help]
+		Print this help screen.
+	netbang [-l|--lists] [<Listname>] 
+		Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing within <Listname>. 
+	
+	netbang [[FLAGS] <object(,optionals)>] <TARGET>
+		CONFIG FLAGS
+			[--env]
+			Print local client environment details.
+			[--ns] <IP(:port)> 
+			Set DNS resolver to IP (and optionally port, 53 is default). Default setup uses 1.1.1.1:53 (Cloudflare).
+	
+		SCANNING FLAGS
+			[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+			Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
+			(View named portlists with --lists)
+	
+			[-pf|--portsfile] <(directory path/)filename>
+			Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
+	
+			[--proto] <tcp|udp>
+			Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
+	
+			[-t] <timeout, in ms>
+			Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+		
+		RECON FLAGS
+			[--recon] <list> | [--recon] <service> <method> <apikey>
+			Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+	
+		<TARGET> 
+			Object of scan or recon. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+		
+		NOTE: Scanning and Recon are mutually exclusive. Setting scanning flags and recon flags together in the same invocation will behave unpredictably.
+				
+	=============EXECUTE: ./netbang 127.0.0.1
+
+Bang target: [127.0.0.1], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:25] -->	[💀] ERROR: dial tcp 127.0.0.1:25: connect: connection refused
+[127.0.0.1:547] -->	[💀] ERROR: dial tcp 127.0.0.1:547: connect: connection refused
+[127.0.0.1:23] -->	[💀] ERROR: dial tcp 127.0.0.1:23: connect: connection refused
+[127.0.0.1:546] -->	[💀] ERROR: dial tcp 127.0.0.1:546: connect: connection refused
+[127.0.0.1:22] -->	[💀] ERROR: dial tcp 127.0.0.1:22: connect: connection refused
+[127.0.0.1:515] -->	[💀] ERROR: dial tcp 127.0.0.1:515: connect: connection refused
+[127.0.0.1:21] -->	[💀] ERROR: dial tcp 127.0.0.1:21: connect: connection refused
+[127.0.0.1:514] -->	[💀] ERROR: dial tcp 127.0.0.1:514: connect: connection refused
+[127.0.0.1:20] -->	[💀] ERROR: dial tcp 127.0.0.1:20: connect: connection refused
+[127.0.0.1:513] -->	[💀] ERROR: dial tcp 127.0.0.1:513: connect: connection refused
+[127.0.0.1:43] -->	[💀] ERROR: dial tcp 127.0.0.1:43: connect: connection refused
+[127.0.0.1:512] -->	[💀] ERROR: dial tcp 127.0.0.1:512: connect: connection refused
+[127.0.0.1:464] -->	[💀] ERROR: dial tcp 127.0.0.1:464: connect: connection refused
+[127.0.0.1:445] -->	[💀] ERROR: dial tcp 127.0.0.1:445: connect: connection refused
+[127.0.0.1:443] -->	[💀] ERROR: dial tcp 127.0.0.1:443: connect: connection refused
+[127.0.0.1:389] -->	[💀] ERROR: dial tcp 127.0.0.1:389: connect: connection refused
+[127.0.0.1:179] -->	[💀] ERROR: dial tcp 127.0.0.1:179: connect: connection refused
+[127.0.0.1:177] -->	[💀] ERROR: dial tcp 127.0.0.1:177: connect: connection refused
+[127.0.0.1:143] -->	[💀] ERROR: dial tcp 127.0.0.1:143: connect: connection refused
+[127.0.0.1:139] -->	[💀] ERROR: dial tcp 127.0.0.1:139: connect: connection refused
+[127.0.0.1:137] -->	[💀] ERROR: dial tcp 127.0.0.1:137: connect: connection refused
+[127.0.0.1:853] -->	[💀] ERROR: dial tcp 127.0.0.1:853: connect: connection refused
+[127.0.0.1:8088] -->	[💀] ERROR: dial tcp 127.0.0.1:8088: connect: connection refused
+[127.0.0.1:8081] -->	[💀] ERROR: dial tcp 127.0.0.1:8081: connect: connection refused
+[127.0.0.1:8080] -->	[💀] ERROR: dial tcp 127.0.0.1:8080: connect: connection refused
+[127.0.0.1:8008] -->	[💀] ERROR: dial tcp 127.0.0.1:8008: connect: connection refused
+[127.0.0.1:5900] -->	[💀] ERROR: dial tcp 127.0.0.1:5900: connect: connection refused
+[127.0.0.1:5800] -->	[💀] ERROR: dial tcp 127.0.0.1:5800: connect: connection refused
+[127.0.0.1:5432] -->	[💀] ERROR: dial tcp 127.0.0.1:5432: connect: connection refused
+[127.0.0.1:5061] -->	[💀] ERROR: dial tcp 127.0.0.1:5061: connect: connection refused
+[127.0.0.1:5060] -->	[💀] ERROR: dial tcp 127.0.0.1:5060: connect: connection refused
+[127.0.0.1:3389] -->	[💀] ERROR: dial tcp 127.0.0.1:3389: connect: connection refused
+[127.0.0.1:3333] -->	[💀] ERROR: dial tcp 127.0.0.1:3333: connect: connection refused
+[127.0.0.1:3306] -->	[💀] ERROR: dial tcp 127.0.0.1:3306: connect: connection refused
+[127.0.0.1:2484] -->	[💀] ERROR: dial tcp 127.0.0.1:2484: connect: connection refused
+[127.0.0.1:2483] -->	[💀] ERROR: dial tcp 127.0.0.1:2483: connect: connection refused
+[127.0.0.1:2375] -->	[💀] ERROR: dial tcp 127.0.0.1:2375: connect: connection refused
+[127.0.0.1:2323] -->	[💀] ERROR: dial tcp 127.0.0.1:2323: connect: connection refused
+[127.0.0.1:2222] -->	[💀] ERROR: dial tcp 127.0.0.1:2222: connect: connection refused
+[127.0.0.1:1521] -->	[💀] ERROR: dial tcp 127.0.0.1:1521: connect: connection refused
+[127.0.0.1:1434] -->	[💀] ERROR: dial tcp 127.0.0.1:1434: connect: connection refused
+[127.0.0.1:1433] -->	[💀] ERROR: dial tcp 127.0.0.1:1433: connect: connection refused
+[127.0.0.1:1337] -->	[💀] ERROR: dial tcp 127.0.0.1:1337: connect: connection refused
+[127.0.0.1:1270] -->	[💀] ERROR: dial tcp 127.0.0.1:1270: connect: connection refused
+[127.0.0.1:995] -->	[💀] ERROR: dial tcp 127.0.0.1:995: connect: connection refused
+[127.0.0.1:993] -->	[💀] ERROR: dial tcp 127.0.0.1:993: connect: connection refused
+[127.0.0.1:990] -->	[💀] ERROR: dial tcp 127.0.0.1:990: connect: connection refused
+[127.0.0.1:989] -->	[💀] ERROR: dial tcp 127.0.0.1:989: connect: connection refused
+[127.0.0.1:873] -->	[💀] ERROR: dial tcp 127.0.0.1:873: connect: connection refused
+[127.0.0.1:636] -->	[💀] ERROR: dial tcp 127.0.0.1:636: connect: connection refused
+[127.0.0.1:593] -->	[💀] ERROR: dial tcp 127.0.0.1:593: connect: connection refused
+[127.0.0.1:587] -->	[💀] ERROR: dial tcp 127.0.0.1:587: connect: connection refused
+[127.0.0.1:80] -->	[💀] ERROR: dial tcp 127.0.0.1:80: connect: connection refused
+[127.0.0.1:135] -->	[💀] ERROR: dial tcp 127.0.0.1:135: connect: connection refused
+[127.0.0.1:119] -->	[💀] ERROR: dial tcp 127.0.0.1:119: connect: connection refused
+[127.0.0.1:113] -->	[💀] ERROR: dial tcp 127.0.0.1:113: connect: connection refused
+[127.0.0.1:111] -->	[💀] ERROR: dial tcp 127.0.0.1:111: connect: connection refused
+[127.0.0.1:110] -->	[💀] ERROR: dial tcp 127.0.0.1:110: connect: connection refused
+[127.0.0.1:88] -->	[💀] ERROR: dial tcp 127.0.0.1:88: connect: connection refused
+[127.0.0.1:68] -->	[💀] ERROR: dial tcp 127.0.0.1:68: connect: connection refused
+[127.0.0.1:79] -->	[💀] ERROR: dial tcp 127.0.0.1:79: connect: connection refused
+[127.0.0.1:69] -->	[💀] ERROR: dial tcp 127.0.0.1:69: connect: connection refused
+[127.0.0.1:53] -->	[💀] ERROR: dial tcp 127.0.0.1:53: connect: connection refused
+[127.0.0.1:67] -->	[💀] ERROR: dial tcp 127.0.0.1:67: connect: connection refused
+[127.0.0.1:8443] -->	[💀] ERROR: dial tcp 127.0.0.1:8443: connect: connection refused
+=============EXECUTE: "53,161,10000" -> ../netbang_ports.tmp
+./netbang --proto udp --portsfile ../netbang_ports.tmp -t 500 127.0.0.1 && rm ../netbang_ports.tmp
+../netbang_ports.tmp:53,161,10000
+Bang target: [127.0.0.1], Portcount: [65]
+=====================================================
+UDP portbangers unleashed...💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:8443] -->	[💀] ERROR: read udp 127.0.0.1:55766->127.0.0.1:8443: read: connection refused
+[127.0.0.1:546] -->	[💀] ERROR: read udp 127.0.0.1:43240->127.0.0.1:546: read: connection refused
+[127.0.0.1:20] -->	[💀] ERROR: read udp 127.0.0.1:41914->127.0.0.1:20: read: connection refused
+[127.0.0.1:547] -->	[💀] ERROR: read udp 127.0.0.1:47910->127.0.0.1:547: read: connection refused
+[127.0.0.1:21] -->	[💀] ERROR: read udp 127.0.0.1:39868->127.0.0.1:21: read: connection refused
+[127.0.0.1:22] -->	[💀] ERROR: read udp 127.0.0.1:39456->127.0.0.1:22: read: connection refused
+[127.0.0.1:23] -->	[💀] ERROR: read udp 127.0.0.1:51510->127.0.0.1:23: read: connection refused
+[127.0.0.1:25] -->	[💀] ERROR: read udp 127.0.0.1:48599->127.0.0.1:25: read: connection refused
+[127.0.0.1:587] -->	[💀] ERROR: read udp 127.0.0.1:34555->127.0.0.1:587: read: connection refused
+[127.0.0.1:43] -->	[💀] ERROR: read udp 127.0.0.1:35277->127.0.0.1:43: read: connection refused
+[127.0.0.1:53] -->	[💀] ERROR: read udp 127.0.0.1:54835->127.0.0.1:53: read: connection refused
+[127.0.0.1:67] -->	[💀] ERROR: read udp 127.0.0.1:48150->127.0.0.1:67: read: connection refused
+[127.0.0.1:593] -->	[💀] ERROR: read udp 127.0.0.1:46727->127.0.0.1:593: read: connection refused
+[127.0.0.1:68] -->	[💀] ERROR: read udp 127.0.0.1:41008->127.0.0.1:68: read: connection refused
+[127.0.0.1:69] -->	[💀] ERROR: read udp 127.0.0.1:34404->127.0.0.1:69: read: connection refused
+[127.0.0.1:79] -->	[💀] ERROR: read udp 127.0.0.1:36550->127.0.0.1:79: read: connection refused
+[127.0.0.1:636] -->	[💀] ERROR: read udp 127.0.0.1:54924->127.0.0.1:636: read: connection refused
+[127.0.0.1:80] -->	[💀] ERROR: read udp 127.0.0.1:42952->127.0.0.1:80: read: connection refused
+[127.0.0.1:88] -->	[💀] ERROR: read udp 127.0.0.1:48914->127.0.0.1:88: read: connection refused
+[127.0.0.1:110] -->	[💀] ERROR: read udp 127.0.0.1:54089->127.0.0.1:110: read: connection refused
+[127.0.0.1:853] -->	[💀] ERROR: read udp 127.0.0.1:50160->127.0.0.1:853: read: connection refused
+[127.0.0.1:113] -->	[💀] ERROR: read udp 127.0.0.1:43184->127.0.0.1:113: read: connection refused
+[127.0.0.1:119] -->	[💀] ERROR: read udp 127.0.0.1:45060->127.0.0.1:119: read: connection refused
+[127.0.0.1:135] -->	[💀] ERROR: read udp 127.0.0.1:47181->127.0.0.1:135: read: connection refused
+[127.0.0.1:989] -->	[💀] ERROR: read udp 127.0.0.1:54585->127.0.0.1:989: read: connection refused
+[127.0.0.1:137] -->	[💀] ERROR: read udp 127.0.0.1:48544->127.0.0.1:137: read: connection refused
+[127.0.0.1:139] -->	[💀] ERROR: read udp 127.0.0.1:39319->127.0.0.1:139: read: connection refused
+[127.0.0.1:143] -->	[💀] ERROR: read udp 127.0.0.1:55952->127.0.0.1:143: read: connection refused
+[127.0.0.1:990] -->	[💀] ERROR: read udp 127.0.0.1:58878->127.0.0.1:990: read: connection refused
+[127.0.0.1:179] -->	[💀] ERROR: read udp 127.0.0.1:53950->127.0.0.1:179: read: connection refused
+[127.0.0.1:389] -->	[💀] ERROR: read udp 127.0.0.1:33429->127.0.0.1:389: read: connection refused
+[127.0.0.1:993] -->	[💀] ERROR: read udp 127.0.0.1:37228->127.0.0.1:993: read: connection refused
+[127.0.0.1:443] -->	[💀] ERROR: read udp 127.0.0.1:42604->127.0.0.1:443: read: connection refused
+[127.0.0.1:445] -->	[💀] ERROR: read udp 127.0.0.1:51171->127.0.0.1:445: read: connection refused
+[127.0.0.1:995] -->	[💀] ERROR: read udp 127.0.0.1:60281->127.0.0.1:995: read: connection refused
+[127.0.0.1:464] -->	[💀] ERROR: read udp 127.0.0.1:54655->127.0.0.1:464: read: connection refused
+[127.0.0.1:512] -->	[💀] ERROR: read udp 127.0.0.1:49544->127.0.0.1:512: read: connection refused
+[127.0.0.1:513] -->	[💀] ERROR: read udp 127.0.0.1:33806->127.0.0.1:513: read: connection refused
+[127.0.0.1:1270] -->	[💀] ERROR: read udp 127.0.0.1:40117->127.0.0.1:1270: read: connection refused
+[127.0.0.1:514] -->	[💀] ERROR: read udp 127.0.0.1:56857->127.0.0.1:514: read: connection refused
+[127.0.0.1:515] -->	[💀] ERROR: read udp 127.0.0.1:44270->127.0.0.1:515: read: connection refused
+[127.0.0.1:873] -->	[💀] ERROR: read udp 127.0.0.1:44850->127.0.0.1:873: read: connection refused
+[127.0.0.1:1337] -->	[💀] ERROR: read udp 127.0.0.1:43369->127.0.0.1:1337: read: connection refused
+[127.0.0.1:3389] -->	[💀] ERROR: read udp 127.0.0.1:48975->127.0.0.1:3389: read: connection refused
+[127.0.0.1:1433] -->	[💀] ERROR: read udp 127.0.0.1:38892->127.0.0.1:1433: read: connection refused
+[127.0.0.1:1434] -->	[💀] ERROR: read udp 127.0.0.1:59208->127.0.0.1:1434: read: connection refused
+[127.0.0.1:5060] -->	[💀] ERROR: read udp 127.0.0.1:44303->127.0.0.1:5060: read: connection refused
+[127.0.0.1:1521] -->	[💀] ERROR: read udp 127.0.0.1:42606->127.0.0.1:1521: read: connection refused
+[127.0.0.1:2222] -->	[💀] ERROR: read udp 127.0.0.1:40587->127.0.0.1:2222: read: connection refused
+[127.0.0.1:2323] -->	[💀] ERROR: read udp 127.0.0.1:56070->127.0.0.1:2323: read: connection refused
+[127.0.0.1:2375] -->	[💀] ERROR: read udp 127.0.0.1:43518->127.0.0.1:2375: read: connection refused
+[127.0.0.1:2483] -->	[💀] ERROR: read udp 127.0.0.1:47585->127.0.0.1:2483: read: connection refused
+[127.0.0.1:2484] -->	[💀] ERROR: read udp 127.0.0.1:45888->127.0.0.1:2484: read: connection refused
+[127.0.0.1:5900] -->	[💀] ERROR: read udp 127.0.0.1:34925->127.0.0.1:5900: read: connection refused
+[127.0.0.1:8008] -->	[💀] ERROR: read udp 127.0.0.1:49036->127.0.0.1:8008: read: connection refused
+[127.0.0.1:8080] -->	[💀] ERROR: read udp 127.0.0.1:41691->127.0.0.1:8080: read: connection refused
+[127.0.0.1:8081] -->	[💀] ERROR: read udp 127.0.0.1:33855->127.0.0.1:8081: read: connection refused
+[127.0.0.1:8088] -->	[💀] ERROR: read udp 127.0.0.1:50152->127.0.0.1:8088: read: connection refused
+[127.0.0.1:111] -->	[💀] ERROR: read udp 127.0.0.1:45893->127.0.0.1:111: read: connection refused
+[127.0.0.1:177] -->	[💀] ERROR: read udp 127.0.0.1:53303->127.0.0.1:177: read: connection refused
+[127.0.0.1:5061] -->	[💀] ERROR: read udp 127.0.0.1:33977->127.0.0.1:5061: read: connection refused
+[127.0.0.1:3306] -->	[💀] ERROR: read udp 127.0.0.1:49174->127.0.0.1:3306: read: connection refused
+[127.0.0.1:3333] -->	[💀] ERROR: read udp 127.0.0.1:49047->127.0.0.1:3333: read: connection refused
+[127.0.0.1:5432] -->	[💀] ERROR: read udp 127.0.0.1:44756->127.0.0.1:5432: read: connection refused
+[127.0.0.1:5800] -->	[💀] ERROR: read udp 127.0.0.1:35429->127.0.0.1:5800: read: connection refused
+=============EXECUTE: ./netbang --recon list
+
+Ninja recon services and methods available:
+	[shodan] :: Shodan is a search engine for Internet-connected devices. Requires API key. See https://developer.shodan.io/api
+	[dns]    :: DNS performs a lookup on a hostname, reverse lookup on an IP address.
+=============EXECUTE: ./netbang --recon dns amazon.com
+
+DNS lookup: [scanme.org] Resolver: [1.1.1.1] Port: 53
+Host [scanme.org] resolves as:
+	IP #1: 45.33.32.156
+	IP #2: 2600:3c01::f03c:91ff:fe18:bb2f
+=============EXECUTE: ./netbang --recon dns --ns 8.8.8.8 github.com
+2024/03/27 16:29:41 Nameserver-set host IP: [8.8.8.8]
+Custom DNS resolver:  8.8.8.8
+
+DNS lookup: [github.com] Resolver: [8.8.8.8] Port: 53
+Host [github.com] resolves as:
+	IP #1: 140.82.114.3
+=============EXECUTE: ./netbang --recon shodan hostip 1.1.1.1
+
+Unparsed Shodan data for target 1.1.1.1:
+&{ [161 2082 2083 2052 69 2086 2087 2095 80 8880 8080 53 8443 443 2096] 1.1.1.1 Cloudflare, Inc. [one.one.one.one] APNIC and Cloudflare DNS Resolver project [] AS13335 2024-03-27T17:33:59.000607 [0xc0000ec600 0xc0000ec780 0xc0000ec900 0xc0000eca80 0xc0000ecc00 0xc0000ecd80 0xc0000ecf00 0xc0000ed080 0xc0000ed200 0xc0000ed380 0xc0000ed500 0xc0000ed680 0xc0000ed800 0xc0000ed980 0xc0000edb00 0xc0000edc80] {The Rocks NSW 0 -33.85923 151.2081 Australia AU   0}}

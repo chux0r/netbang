@@ -11,10 +11,13 @@ Author: CT Geigner "chux0r"
 import (
 	"context"
 	"fmt"
-	"net"
-	"time"
 	"log"
+	"net"
 	"strings"
+	"time"
+
+	"chux0r.org/portfu"
+	"chux0r.org/uglynum"
 )
 
 type DnsData struct {
@@ -34,7 +37,7 @@ always sets up a custom dialer for name resolution
 func (dd *DnsData)get(s string) error { 
 	var err error
 	dd.Dns.StrictErrors = false // enable partial results
-	resolvr := getSocketString(Nsd.IPAddr.String(), Nsd.Port) //"default: 1.1.1.1:53 (Cloudflare dns)"     
+	resolvr := portfu.GetSocketString(Nsd.IPAddr.String(), Nsd.Port) //"default: 1.1.1.1:53 (Cloudflare dns)"     
 	ctx := context.Background()
 	dd.Dns.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 		//d := net.Dialer{Timeout: time.Second * time.Duration(5)}
@@ -101,7 +104,7 @@ func (n *NameSvr)setResolver(ipp string) error {
 		if len(nsdef) > 2 {
 			log.Printf("Warning: Nameserver-set overloaded. Sent -> [%s] Using host -> [%s] and port -> [%s], discarding excess parameters.", ipp, nsdef[0], nsdef[1])
 		}
-		p, valid := numStringToInt32(nsdef[1])
+		p, valid := uglynum.NumStringToInt32(nsdef[1])
 		if valid {
 			n.Port = uint16(p) 
 			log.Printf("Nameserver-set: [%s:%d]",n.IPAddr.String(),n.Port)
