@@ -1,0 +1,247 @@
+Build test by: mongoose@thoughtcrime:/home/mongoose/workbench/dev/golang/netbang
+Date:Thu Mar 28 05:58:21 PM CDT 2024
+ -- GO version: go version go1.20.3 linux/amd64
+ -- Platform OS/arch details: Linux thoughtcrime 6.5.0-26-generic #26~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Mar 12 10:22:43 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+
+
+=============BUILD: go build ./netbang.go ./recon.go ./resolver.go
+NETBANG TEST CASES:
+./netbang
+
+	USAGE:
+	netbang [-h|--help]
+		Print this help screen.
+	netbang [-l|--lists] [<Listname>] 
+		Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing within <Listname>. 
+	
+	netbang [[FLAGS] <object(,optionals)>] <TARGET>
+		CONFIG FLAGS
+			[--env]
+			Print local client environment details.
+			[--ns] <IP(:port)> 
+			Set DNS resolver to IP (and optionally port, 53 is default). Default setup uses 1.1.1.1:53 (Cloudflare).
+	
+		SCANNING FLAGS
+			[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+			Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
+			(View named portlists with --lists)
+	
+			[-pf|--portsfile] <(directory path/)filename>
+			Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
+	
+			[--proto] <tcp|udp>
+			Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
+	
+			[-t] <timeout, in ms>
+			Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+		
+		RECON FLAGS
+			[--recon] <list> | [--recon] <service> <method> <apikey>
+			Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+	
+		<TARGET> 
+			Object of scan or recon. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+		
+		NOTE: Scanning and Recon are mutually exclusive. Setting scanning flags and recon flags together in the same invocation will behave unpredictably.
+				
+	
+=============BASIC SCAN-BY-HOSTNAME: ./netbang scanme.org
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc000014040 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc000014040 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc000014040 ]
+
+Bang target: [scanme.org], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...😎😎💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+scanme.org Scan Results
+================================================================================
+[scanme.org:22] -->	[😎] OPEN
+[scanme.org:80] -->	[😎] OPEN
+[scanme.org:8088] -->	[💀] ERROR: dial tcp 45.33.32.156:8088: connect: connection refused
+[scanme.org:20] -->	[💀] ERROR: dial tcp 45.33.32.156:20: connect: connection refused
+[scanme.org:8081] -->	[💀] ERROR: dial tcp 45.33.32.156:8081: connect: connection refused
+[scanme.org:8443] -->	[💀] ERROR: dial tcp 45.33.32.156:8443: connect: connection refused
+[scanme.org:515] -->	[💀] ERROR: dial tcp 45.33.32.156:515: connect: connection refused
+[scanme.org:593] -->	[💀] ERROR: dial tcp 45.33.32.156:593: connect: connection refused
+[scanme.org:873] -->	[💀] ERROR: dial tcp 45.33.32.156:873: connect: connection refused
+[scanme.org:636] -->	[💀] ERROR: dial tcp 45.33.32.156:636: connect: connection refused
+[scanme.org:23] -->	[💀] ERROR: dial tcp 45.33.32.156:23: connect: connection refused
+[scanme.org:995] -->	[💀] ERROR: dial tcp 45.33.32.156:995: connect: connection refused
+[scanme.org:25] -->	[💀] ERROR: dial tcp 45.33.32.156:25: connect: connection refused
+[scanme.org:993] -->	[💀] ERROR: dial tcp 45.33.32.156:993: connect: connection refused
+[scanme.org:43] -->	[💀] ERROR: dial tcp 45.33.32.156:43: connect: connection refused
+[scanme.org:1270] -->	[💀] ERROR: dial tcp 45.33.32.156:1270: connect: connection refused
+[scanme.org:1337] -->	[💀] ERROR: dial tcp 45.33.32.156:1337: connect: connection refused
+[scanme.org:53] -->	[💀] ERROR: dial tcp 45.33.32.156:53: connect: connection refused
+[scanme.org:68] -->	[💀] ERROR: dial tcp 45.33.32.156:68: connect: connection refused
+[scanme.org:69] -->	[💀] ERROR: dial tcp 45.33.32.156:69: connect: connection refused
+[scanme.org:1433] -->	[💀] ERROR: dial tcp 45.33.32.156:1433: connect: connection refused
+[scanme.org:88] -->	[💀] ERROR: dial tcp 45.33.32.156:88: connect: connection refused
+[scanme.org:110] -->	[💀] ERROR: dial tcp 45.33.32.156:110: connect: connection refused
+[scanme.org:79] -->	[💀] ERROR: dial tcp 45.33.32.156:79: connect: connection refused
+[scanme.org:546] -->	[💀] ERROR: dial tcp 45.33.32.156:546: connect: connection refused
+[scanme.org:113] -->	[💀] ERROR: dial tcp 45.33.32.156:113: connect: connection refused
+[scanme.org:389] -->	[💀] ERROR: dial tcp 45.33.32.156:389: connect: connection refused
+[scanme.org:2375] -->	[💀] ERROR: dial tcp 45.33.32.156:2375: connect: connection refused
+[scanme.org:464] -->	[💀] ERROR: dial tcp 45.33.32.156:464: connect: connection refused
+[scanme.org:143] -->	[💀] ERROR: dial tcp 45.33.32.156:143: connect: connection refused
+[scanme.org:3306] -->	[💀] ERROR: dial tcp 45.33.32.156:3306: connect: connection refused
+[scanme.org:443] -->	[💀] ERROR: dial tcp 45.33.32.156:443: connect: connection refused
+[scanme.org:2484] -->	[💀] ERROR: dial tcp 45.33.32.156:2484: connect: connection refused
+[scanme.org:177] -->	[💀] ERROR: dial tcp 45.33.32.156:177: connect: connection refused
+[scanme.org:119] -->	[💀] ERROR: dial tcp 45.33.32.156:119: connect: connection refused
+[scanme.org:3333] -->	[💀] ERROR: dial tcp 45.33.32.156:3333: connect: connection refused
+[scanme.org:5061] -->	[💀] ERROR: dial tcp 45.33.32.156:5061: connect: connection refused
+[scanme.org:1434] -->	[💀] ERROR: dial tcp 45.33.32.156:1434: connect: connection refused
+[scanme.org:514] -->	[💀] ERROR: dial tcp 45.33.32.156:514: connect: connection refused
+[scanme.org:2323] -->	[💀] ERROR: dial tcp 45.33.32.156:2323: connect: connection refused
+[scanme.org:5060] -->	[💀] ERROR: dial tcp 45.33.32.156:5060: connect: connection refused
+[scanme.org:5800] -->	[💀] ERROR: dial tcp 45.33.32.156:5800: connect: connection refused
+[scanme.org:5900] -->	[💀] ERROR: dial tcp 45.33.32.156:5900: connect: connection refused
+[scanme.org:179] -->	[💀] ERROR: dial tcp 45.33.32.156:179: connect: connection refused
+[scanme.org:2222] -->	[💀] ERROR: dial tcp 45.33.32.156:2222: connect: connection refused
+[scanme.org:8008] -->	[💀] ERROR: dial tcp 45.33.32.156:8008: connect: connection refused
+[scanme.org:512] -->	[💀] ERROR: dial tcp 45.33.32.156:512: connect: connection refused
+[scanme.org:3389] -->	[💀] ERROR: dial tcp 45.33.32.156:3389: connect: connection refused
+[scanme.org:8080] -->	[💀] ERROR: dial tcp 45.33.32.156:8080: connect: connection refused
+[scanme.org:513] -->	[💀] ERROR: dial tcp 45.33.32.156:513: connect: connection refused
+[scanme.org:139] -->	[💀] ERROR: dial tcp 45.33.32.156:139: i/o timeout
+[scanme.org:547] -->	[💀] ERROR: dial tcp 45.33.32.156:547: i/o timeout
+[scanme.org:587] -->	[💀] ERROR: dial tcp 45.33.32.156:587: i/o timeout
+[scanme.org:5432] -->	[💀] ERROR: dial tcp 45.33.32.156:5432: i/o timeout
+[scanme.org:111] -->	[💀] ERROR: dial tcp 45.33.32.156:111: i/o timeout
+[scanme.org:21] -->	[💀] ERROR: dial tcp 45.33.32.156:21: i/o timeout
+[scanme.org:67] -->	[💀] ERROR: dial tcp 45.33.32.156:67: i/o timeout
+[scanme.org:135] -->	[💀] ERROR: dial tcp 45.33.32.156:135: i/o timeout
+[scanme.org:137] -->	[💀] ERROR: dial tcp 45.33.32.156:137: i/o timeout
+[scanme.org:445] -->	[💀] ERROR: dial tcp 45.33.32.156:445: i/o timeout
+[scanme.org:853] -->	[💀] ERROR: dial tcp 45.33.32.156:853: i/o timeout
+[scanme.org:1521] -->	[💀] ERROR: dial tcp 45.33.32.156:1521: i/o timeout
+[scanme.org:989] -->	[💀] ERROR: dial tcp 45.33.32.156:989: i/o timeout
+[scanme.org:2483] -->	[💀] ERROR: dial tcp 45.33.32.156:2483: i/o timeout
+[scanme.org:990] -->	[💀] ERROR: dial tcp 45.33.32.156:990: i/o timeout
+
+=============UDP SCAN, PORTS DEFINED IN FILE, CUSTOM TIMEOUT ./netbang --proto udp --portsfile ../netbang_ports.tmp -t 500 127.0.0.1
+
+	FILE INJECT ../netbang_ports.tmp:53,161,10000
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc0000a2030 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a2030 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a2030 ]
+
+Bang target: [127.0.0.1], Portcount: [65]
+=====================================================
+UDP portbangers unleashed...💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:8443] -->	[💀] ERROR: read udp 127.0.0.1:37139->127.0.0.1:8443: read: connection refused
+[127.0.0.1:88] -->	[💀] ERROR: read udp 127.0.0.1:53652->127.0.0.1:88: read: connection refused
+[127.0.0.1:110] -->	[💀] ERROR: read udp 127.0.0.1:44216->127.0.0.1:110: read: connection refused
+[127.0.0.1:111] -->	[💀] ERROR: read udp 127.0.0.1:39748->127.0.0.1:111: read: connection refused
+[127.0.0.1:113] -->	[💀] ERROR: read udp 127.0.0.1:57818->127.0.0.1:113: read: connection refused
+[127.0.0.1:119] -->	[💀] ERROR: read udp 127.0.0.1:33398->127.0.0.1:119: read: connection refused
+[127.0.0.1:135] -->	[💀] ERROR: read udp 127.0.0.1:40097->127.0.0.1:135: read: connection refused
+[127.0.0.1:137] -->	[💀] ERROR: read udp 127.0.0.1:41777->127.0.0.1:137: read: connection refused
+[127.0.0.1:139] -->	[💀] ERROR: read udp 127.0.0.1:60823->127.0.0.1:139: read: connection refused
+[127.0.0.1:143] -->	[💀] ERROR: read udp 127.0.0.1:51583->127.0.0.1:143: read: connection refused
+[127.0.0.1:177] -->	[💀] ERROR: read udp 127.0.0.1:33007->127.0.0.1:177: read: connection refused
+[127.0.0.1:179] -->	[💀] ERROR: read udp 127.0.0.1:47630->127.0.0.1:179: read: connection refused
+[127.0.0.1:389] -->	[💀] ERROR: read udp 127.0.0.1:50944->127.0.0.1:389: read: connection refused
+[127.0.0.1:443] -->	[💀] ERROR: read udp 127.0.0.1:50442->127.0.0.1:443: read: connection refused
+[127.0.0.1:445] -->	[💀] ERROR: read udp 127.0.0.1:50667->127.0.0.1:445: read: connection refused
+[127.0.0.1:464] -->	[💀] ERROR: read udp 127.0.0.1:50327->127.0.0.1:464: read: connection refused
+[127.0.0.1:512] -->	[💀] ERROR: read udp 127.0.0.1:59496->127.0.0.1:512: read: connection refused
+[127.0.0.1:513] -->	[💀] ERROR: read udp 127.0.0.1:58933->127.0.0.1:513: read: connection refused
+[127.0.0.1:514] -->	[💀] ERROR: read udp 127.0.0.1:44155->127.0.0.1:514: read: connection refused
+[127.0.0.1:515] -->	[💀] ERROR: read udp 127.0.0.1:34546->127.0.0.1:515: read: connection refused
+[127.0.0.1:20] -->	[💀] ERROR: read udp 127.0.0.1:42658->127.0.0.1:20: read: connection refused
+[127.0.0.1:547] -->	[💀] ERROR: read udp 127.0.0.1:53359->127.0.0.1:547: read: connection refused
+[127.0.0.1:587] -->	[💀] ERROR: read udp 127.0.0.1:48184->127.0.0.1:587: read: connection refused
+[127.0.0.1:593] -->	[💀] ERROR: read udp 127.0.0.1:41142->127.0.0.1:593: read: connection refused
+[127.0.0.1:636] -->	[💀] ERROR: read udp 127.0.0.1:58475->127.0.0.1:636: read: connection refused
+[127.0.0.1:853] -->	[💀] ERROR: read udp 127.0.0.1:42322->127.0.0.1:853: read: connection refused
+[127.0.0.1:873] -->	[💀] ERROR: read udp 127.0.0.1:56908->127.0.0.1:873: read: connection refused
+[127.0.0.1:989] -->	[💀] ERROR: read udp 127.0.0.1:55530->127.0.0.1:989: read: connection refused
+[127.0.0.1:990] -->	[💀] ERROR: read udp 127.0.0.1:56291->127.0.0.1:990: read: connection refused
+[127.0.0.1:993] -->	[💀] ERROR: read udp 127.0.0.1:48656->127.0.0.1:993: read: connection refused
+[127.0.0.1:995] -->	[💀] ERROR: read udp 127.0.0.1:35587->127.0.0.1:995: read: connection refused
+[127.0.0.1:1270] -->	[💀] ERROR: read udp 127.0.0.1:41052->127.0.0.1:1270: read: connection refused
+[127.0.0.1:1337] -->	[💀] ERROR: read udp 127.0.0.1:36875->127.0.0.1:1337: read: connection refused
+[127.0.0.1:1433] -->	[💀] ERROR: read udp 127.0.0.1:55051->127.0.0.1:1433: read: connection refused
+[127.0.0.1:1434] -->	[💀] ERROR: read udp 127.0.0.1:46899->127.0.0.1:1434: read: connection refused
+[127.0.0.1:1521] -->	[💀] ERROR: read udp 127.0.0.1:53901->127.0.0.1:1521: read: connection refused
+[127.0.0.1:2222] -->	[💀] ERROR: read udp 127.0.0.1:34322->127.0.0.1:2222: read: connection refused
+[127.0.0.1:2323] -->	[💀] ERROR: read udp 127.0.0.1:49014->127.0.0.1:2323: read: connection refused
+[127.0.0.1:2375] -->	[💀] ERROR: read udp 127.0.0.1:49728->127.0.0.1:2375: read: connection refused
+[127.0.0.1:2483] -->	[💀] ERROR: read udp 127.0.0.1:51604->127.0.0.1:2483: read: connection refused
+[127.0.0.1:2484] -->	[💀] ERROR: read udp 127.0.0.1:55175->127.0.0.1:2484: read: connection refused
+[127.0.0.1:3306] -->	[💀] ERROR: read udp 127.0.0.1:40616->127.0.0.1:3306: read: connection refused
+[127.0.0.1:3333] -->	[💀] ERROR: read udp 127.0.0.1:55650->127.0.0.1:3333: read: connection refused
+[127.0.0.1:3389] -->	[💀] ERROR: read udp 127.0.0.1:34152->127.0.0.1:3389: read: connection refused
+[127.0.0.1:5060] -->	[💀] ERROR: read udp 127.0.0.1:46892->127.0.0.1:5060: read: connection refused
+[127.0.0.1:5061] -->	[💀] ERROR: read udp 127.0.0.1:43620->127.0.0.1:5061: read: connection refused
+[127.0.0.1:5432] -->	[💀] ERROR: read udp 127.0.0.1:37713->127.0.0.1:5432: read: connection refused
+[127.0.0.1:5800] -->	[💀] ERROR: read udp 127.0.0.1:45231->127.0.0.1:5800: read: connection refused
+[127.0.0.1:5900] -->	[💀] ERROR: read udp 127.0.0.1:45856->127.0.0.1:5900: read: connection refused
+[127.0.0.1:8008] -->	[💀] ERROR: read udp 127.0.0.1:54635->127.0.0.1:8008: read: connection refused
+[127.0.0.1:8080] -->	[💀] ERROR: read udp 127.0.0.1:42371->127.0.0.1:8080: read: connection refused
+[127.0.0.1:22] -->	[💀] ERROR: read udp 127.0.0.1:51597->127.0.0.1:22: read: connection refused
+[127.0.0.1:8081] -->	[💀] ERROR: read udp 127.0.0.1:54895->127.0.0.1:8081: read: connection refused
+[127.0.0.1:8088] -->	[💀] ERROR: read udp 127.0.0.1:55184->127.0.0.1:8088: read: connection refused
+[127.0.0.1:80] -->	[💀] ERROR: read udp 127.0.0.1:43398->127.0.0.1:80: read: connection refused
+[127.0.0.1:68] -->	[💀] ERROR: read udp 127.0.0.1:49565->127.0.0.1:68: read: connection refused
+[127.0.0.1:23] -->	[💀] ERROR: read udp 127.0.0.1:53502->127.0.0.1:23: read: connection refused
+[127.0.0.1:25] -->	[💀] ERROR: read udp 127.0.0.1:56231->127.0.0.1:25: read: connection refused
+[127.0.0.1:43] -->	[💀] ERROR: read udp 127.0.0.1:41936->127.0.0.1:43: read: connection refused
+[127.0.0.1:53] -->	[💀] ERROR: read udp 127.0.0.1:33718->127.0.0.1:53: read: connection refused
+[127.0.0.1:67] -->	[💀] ERROR: read udp 127.0.0.1:37201->127.0.0.1:67: read: connection refused
+[127.0.0.1:546] -->	[💀] ERROR: read udp 127.0.0.1:36103->127.0.0.1:546: read: connection refused
+[127.0.0.1:69] -->	[💀] ERROR: read udp 127.0.0.1:42735->127.0.0.1:69: read: connection refused
+[127.0.0.1:79] -->	[💀] ERROR: read udp 127.0.0.1:60477->127.0.0.1:79: read: connection refused
+[127.0.0.1:21] -->	[💀] ERROR: read udp 127.0.0.1:49915->127.0.0.1:21: read: connection refused
+
+=============EXECUTE: ./netbang --recon list
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc0000aa030 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000aa030 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000aa030 ]
+
+Ninja recon services and methods available:
+	[shodan] :: Shodan is a search engine for Internet-connected devices. Requires API key. See https://developer.shodan.io/api
+	[dns]    :: DNS performs a lookup on a hostname, reverse lookup on an IP address.
+
+=============EXECUTE: ./netbang --recon dns amazon.com
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc000014040 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc000014040 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc000014040 ]
+
+DNS lookup: [amazon.com] Resolver: [1.1.1.1] Port: 53
+Host [amazon.com] resolves as:
+	IP #1: 205.251.242.103
+	IP #2: 54.239.28.85
+	IP #3: 52.94.236.248
+
+=============EXECUTE: ./netbang --recon dns --ns 8.8.8.8 github.com
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc0000a0030 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a0030 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a0030 ]
+2024/03/28 17:58:24 Nameserver-set host IP: [8.8.8.8]
+Custom DNS resolver:  8.8.8.8
+
+DNS lookup: [github.com] Resolver: [8.8.8.8] Port: 53
+Host [github.com] resolves as:
+	IP #1: 140.82.112.4
+
+=============EXECUTE: ./netbang --recon shodan hostip 1.1.1.1
+DEBUG: PortList pl[ &[] ] *pl[ [] ] &pl[ 0xc0000a0030 ]
+DEBUG: The ports to ADD: [ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ]
+DEBUG: After COPY tmp INTO: pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a0030 ]
+DEBUG: After APPEND NEW PORTS pl[ &[20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] *pl[ [20 21 22 23 25 43 53 67 68 69 79 80 88 110 111 113 119 135 137 139 143 177 179 389 443 445 464 512 513 514 515 546 547 587 593 636 853 873 989 990 993 995 1270 1337 1433 1434 1521 2222 2323 2375 2483 2484 3306 3333 3389 5060 5061 5432 5800 5900 8008 8080 8081 8088 8443] ] &pl[ 0xc0000a0030 ]
+
+Unparsed Shodan data for target 1.1.1.1:
+&{ [161 2082 2083 2052 69 2086 2087 2095 80 8880 8080 53 8443 443 2096] 1.1.1.1 Cloudflare, Inc. [one.one.one.one] APNIC and Cloudflare DNS Resolver project [] AS13335 2024-03-28T11:18:26.517490 [0xc000002000 0xc000002300 0xc000002480 0xc000002600 0xc000002780 0xc000002900 0xc000002a80 0xc000002c00 0xc000002d80 0xc000002f00 0xc000003080 0xc000003200 0xc000003380 0xc000003500 0xc000003680 0xc000003800] {The Rocks NSW 0 -33.85923 151.2081 Australia AU   0}}

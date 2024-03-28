@@ -28,15 +28,15 @@ import (
 	"strings"
 )
 
-func NumStringToInt32(snr string) (int32, bool) {
+func NumStringToInt32(sn string) (int32, bool) {
 	var tot int32 = 0
 	isnum := false               // I'll believe you're supposed to be a number when you show me you behave like one...
-	snr = strings.TrimSpace(snr) // be nice and trim it up, just in case
-	// fmt.Println("\nItem: ", []byte(snr)) //TEST
-	slen := len([]rune(snr))
+	sn = strings.TrimSpace(sn) // be nice and trim it up, just in case
+	// fmt.Println("\nItem: ", []byte(sn)) //TEST
+	slen := len([]rune(sn))
 	for i := slen - 1; i >= 0; i-- { // build the number, by walking the chars
-		char := snr[i]
-		if (int32(char)-48 < 0) || (int32(char)-48) > 9 { // if char is not 0-9
+		char := sn[i]
+		if (int32(char)-48) < 0 || (int32(char)-48) > 9 { // if char is not 0-9
 			//fmt.Printf("Char is OOB! c[0x%x] d[%d]", char, int32(char)-48) TEST
 			return int32(char), false // return OOB/NaN char value + FALSE
 		} else {
@@ -44,14 +44,14 @@ func NumStringToInt32(snr string) (int32, bool) {
 			isnum = true
 			// Use positional exponent math to compute value.
 			// This is, if I am thinking about this correctly, computationally less expensive than using math.Pow10 and float64s :)
-			var mplr int32 = 1 // multiplier, to rebuild our port num piece by piece
+			var mult int32 = 1 // multiplier, to rebuild our port num piece by piece
 			if char != '0' {   // only when we have a non zero num to compute
 				digit := slen - 1 - i // len-1-i is most signif. digit L->R
 				for j := digit; j > 0; j-- {
-					mplr = mplr * 10
+					mult = mult * 10
 				}
-				// fmt.Printf(" times %d (x10^%d)", mplr, digit) TEST
-				tot = tot + (int32(char)-48)*mplr
+				// fmt.Printf(" times %d (x10^%d)", mult, digit) TEST
+				tot = tot + (int32(char)-48)*mult
 				// fmt.Printf(", totaling %d\n", tot)
 			}
 		}

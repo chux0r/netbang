@@ -39,11 +39,33 @@ Useful for lots of TCP/UDP netNamg stuff. Methods to populate and manage.
 type PortList []uint16 
 
 func (pl *PortList)Add(a []uint16) {
-
+	//holdr := *pl
+	
+	fmt.Println("DEBUG: PortList pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
+	fmt.Println("DEBUG: The ports to ADD: [", a, "]")
+	//fmt.Println("DEBUG: The COPY: holdr[", holdr, "] &holdr[", &holdr,"]")
+	//*pl = make([]uint16, 0, len(holdr)+len(a)) //stretch capacity out to total size
+	*pl = append(*pl, a...)	
+	//fmt.Println("DEBUG: LEN holdr [", len(holdr), "] + LEN a [", len(a), "]")
+	//fmt.Println("DEBUG: NEWLEN *pl [", len(*pl), "]")
+	//fmt.Println("DEBUG: After MAKENEW: pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
+	//copy(*pl, holdr)
+	fmt.Println("DEBUG: After COPY tmp INTO: pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
+	
+	fmt.Println("DEBUG: After APPEND NEW PORTS pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
+	/*
 	tmp := pl
+	fmt.Println("DEBUG: PortList pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
+	fmt.Println("DEBUG: The ports to ADD: [", a, "]")
+	fmt.Println("DEBUG: The COPY tmp[", tmp, "] *pl[", *tmp, "] &pl[", &tmp,"]")
 	*pl = make([]uint16, 0, len(*tmp)+len(a)) //stretch capacity out to total size
+	fmt.Println("DEBUG: LEN tmp [", len(*tmp), "] + LEN a [", len(a), "]")
+	fmt.Println("DEBUG: After MAKENEW: pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
 	copy(*pl, *tmp)
+	fmt.Println("DEBUG: After COPY tmp INTO: pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
 	*pl = append(*pl, a...)
+	fmt.Println("DEBUG: After APPEND NEW PORTS pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
+	*/
 }
 
 // InitDefault() builds and returns a port list slice for netBang. It is based on (IMHO) some reasonable and usually of-interest ports. 

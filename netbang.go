@@ -74,11 +74,6 @@ type NetSpec struct {
 	BangSpan []portfu.PortRange  // optional port ranges
 }
 
-type PortRange struct {
-	Start uint16
-	End   uint16
-}
-
 // Targets, nodes, our stuff, everything. This is how we describe them
 // NOTE: supercedes "TargetSpec".
 type Target struct {
@@ -163,15 +158,21 @@ type ReconSpec struct {
 	Args    []string
 }
 
+// Verbosity: 
+//		Want some output to stdout? yes/no (no -> silent)  ["Want some Rye? 'Course you do."]
+//		Verbose amount of output? yes/no (no -> normal program emissions) 
+//		Debug verbosity? (true -> debug). 
+//      Key: Silent will override normal and verbose, but debug overrides all
+var Verbosity = [3]bool{ true, false, false }  
 var ThisScan ScanSpec
 var ThisRecon ReconSpec
 var BangMode uint8 = 0 // Modes: info: 0, scanning: 1, recon: 2 -- SAFETY ON - default to "not scan"
 
 func init() {
-	constructor() 
+	
 	// CLI FLAG CONFIGS
 	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
-	envDo        := flag.Bool("env", false, "Print environment, platform, arch, and network details for your client.")
+	envDo        := flag.Bool("env", false, "Print local host environment, platform, arch, and network details.")
 	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
 	helpDo       := flag.Bool("h", false, "Pull up a detailed \"help\" screen and exit.")
 	helpDo2      := flag.Bool("help", false, "Same as \"-h\", above.")
@@ -191,9 +192,16 @@ func init() {
 		verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
 		verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
 	*/
+	debugDo      := flag.Bool("debug", false, "Turn on debug output.")
+
 	flag.Parse()
 	// END FLAG EVAL+PARSE
-
+	
+	// DEBUG + VERBOSITY
+	if *debugDo {
+		Verbosity = [3]bool{true, true, true}	
+	}
+	
 	// HELP MENU
 	if *helpDo || *helpDo2 || len(os.Args) <= 1 { //Launch help screen and exit
 		BangMode = 0
@@ -247,10 +255,6 @@ func init() {
 	
 		os.Exit(0)
 	} 
-	if *envDo {
-		BangMode = 0
-		osutils.Ifstat()
-	}
 
 	if *listsDo || *listsDo2 {
 		BangMode = 0
@@ -261,9 +265,17 @@ func init() {
 		}
 		os.Exit(0)
 	}
+					//  After this point we start to define target stuff for recon or scanning
+	constructor()	//  initialize default target endpoint spec  
+
+	if *envDo {
+		BangMode = 0
+		osutils.Ifstat()
+	}
+
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
 		BangMode = 1
-		ThisScan.NetDeets.PortList = []uint16{}      // clear the default port definitions since we GOIN'CUSTOM yee-haw
+		ThisScan.NetDeets.PortList = []uint16{}      // zero out default port defs since we GOIN'CUSTOM yee-haw
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
 			log.Print("Warning: Ports given with both -p and --ports. Combining.")
 		}
@@ -271,10 +283,10 @@ func init() {
 			log.Print("Warning: Multiple input files given with both -pf and --portsfile. Combining.")
 		}
 		if len(*portsDo) > 0 { // ifdef -p
-			finalizePortsList(*portsDo)
+			buildPortsList(*portsDo)
 		}
-		if len(*portsDo2) > 0 { // ifdef -ports
-			finalizePortsList(*portsDo2)
+		if len(*portsDo2) > 0 { // ifdef --ports
+			buildPortsList(*portsDo2)
 		}
 		if len(*portsfileDo) > 0 { // ifdef -pf read given user port config file
 			log.Printf("Opening user-defined port config file [%s].", *portsfileDo)
@@ -290,7 +302,7 @@ func init() {
 			}
 			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
 			fmt.Printf("\nData read from cf file: >> %s", string(p))
-			finalizePortsList(string(p))
+			buildPortsList(string(p))
 		}
 	}
 
@@ -354,7 +366,7 @@ func main() {
 /* scanConstructor() just start off with sensible default values. Most defaults aim at "tcp scan" context */
 func constructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
-	ThisScan.NetDeets.PortList = portfu.InitDefault("tcp_short")
+	ThisScan.NetDeets.PortList.Add(portfu.InitDefault("tcp_short"))
 	ThisScan.Targ.Ip = net.IP{127,0,0,1}
 	ThisScan.Targ.Obj = ThisScan.Targ.Ip.String()
 }
@@ -574,46 +586,82 @@ Notes:
 		Dedup list? (not sure here is the place tho)
 ******************************************************************************/
 func parsePortsCdl(s string) ([]uint16, []string) {
-	var r1 []string  // named lists     ex: {"tcp_extra"}
-	var r2 []uint16  // ports           ex: {22,23,80,3389}
+	if Verbosity[2] {
+		fmt.Println("DEBUG: parsePortsCDL(): parsing [", s, "]")
+	}
+	st := strings.Trim(s, ",") // bug #27: trim excess delimiters, pls
+	var r1 []uint16  // ports           ex: {22,23,80,3389}
+	var r2 []string  // named lists     ex: {"tcp_extra"}
 	var pr portfu.PortRange // port range defs ex: {"80-90","100-3000"}
 	var port int32
 	var isnum bool
-	// fmt.Println("\nParsePortsCDL input string: ", s) TEST
-	list := strings.Split(s, ",")
-	for _, item := range list { // Eval each list item
+	
+	list := strings.Split(st, ",")
+	for _, item := range list { // For each item in the CDL, parse chars and eval 
+		if Verbosity[2] {
+			fmt.Println("DEBUG: parsePortsCDL(): Evaluating item [", item, "]")
+		}
 		port, isnum = uglynum.NumStringToInt32(item)
-		if isnum == false { // put the name in the list of names
+		if isnum == false { // put the name in the list of bytes/runes that don't represent numbers
+			if Verbosity[2] {
+				fmt.Println("DEBUG: parsePortsCDL(): [", item, "] result: NAN")
+			}
 			if port == 45 { // 45d is 0x2d, a.k.a. the hyphen. Possible num1-num2 range.
 				pr = portfu.ArgsToPortRange(item) // Check port range def and populate BangSpan if valid
+				if Verbosity[2] {
+					fmt.Println("DEBUG: parsePortsCDL(): [", item, "] is possibly a port range.\nDEBUG: ArgsToPortRange. Result: RANGE[", pr.Start,"]:[", pr.End, "]")
+				}
 				if pr.End != 0 {
+					if Verbosity[2] {
+						fmt.Println("DEBUG: parsePortsCDL(): Adding item [", item, "] to ThisScan...BangSpan as a range to use.")
+					}
 					ThisScan.NetDeets.BangSpan = append(ThisScan.NetDeets.BangSpan, pr)
 				}
 			} else { // Assume a "named list"; send to named lists eval
-				r1 = append(r1, item)
+				if Verbosity[2] {
+					fmt.Println("DEBUG: parsePortsCDL():  Item [", item, "], is a non-number, non-range string. Assumed Named List. Returning for eval.")
+				}
+				r2 = append(r2, item)
 			}
 		} else { // put numbers in the list of ports
-			r2 = append(r2, uint16(port))
+			r1 = append(r1, uint16(port))
+			if Verbosity[2] {
+				fmt.Println("DEBUG: parsePortsCDL(): Item [", item, "] is a number [", port,"]. Appended. Current port slice [",r1,"]")
+			}
 		}
 	}
-	// fmt.Println("\nPort range defs strings slice: ", r0) // TEST
-	// fmt.Println("\nNamed portlist strings slice: ", r1) // TEST
-	// fmt.Println("\nUint16 ports slice: ", r2)  // TEST
-	return r2, r1
+	if Verbosity[2] {
+		fmt.Println("\nDEBUG: parsePortsCdl() Port range def string: ", s) 
+		fmt.Println("\nDEBUG: parsePortsCdl() RETURN-> Named portlist strings slice: ", r2)
+		fmt.Println("\nDEBUG: parsePortsCdl() RETURN-> Uint16 ports slice: ", r1) 
+	}
+	return r1, r2
 }
 
 /********************************************************************************
-finalizePortsList()
+buildPortsList()
 
 take user-defined input string, parse and convert numbers, identify named lists,
 then append all to Netdeets.Portlist
 
 Was named "doPortsFinal()" up to v0.43a
 ********************************************************************************/
-func finalizePortsList(udi string) {
+func buildPortsList(udi string) {
+	if Verbosity[2] {
+		fmt.Println("DEBUG: buildPortsList(): Process input [", udi,"] with parsePortsCdl()")
+	}
 	pn, nl := parsePortsCdl(udi) // convert port strings to uint16; separate port numbers (pn) from named lists (nl)
+	if Verbosity[2] {
+		fmt.Println("DEBUG: buildPortsList(): Adding [", pn, "] to ThisScan...Portlist.")
+	}
 	ThisScan.NetDeets.PortList.Add(pn)
+	if Verbosity[2] {
+		fmt.Println("DEBUG: buildPortsList(): ThisScan...Portlist, current: [", ThisScan.NetDeets.PortList, "]")
+	}///GOOD TO HERE...
 	if len(nl) > 0 { // if we have named lists...
+		if Verbosity[2] {
+			fmt.Println("DEBUG: buildPortsList(): Add ports in named list [", nl,"] to ThisScan...Portlist" )
+		}
 		for i := 0; i < len(nl); i++ { // ...parse each...
 			// resize the portlist appropriately and reassemble
 			newports := portfu.InitDefault(nl[i]) // ...into a []uint16 slice...
@@ -623,5 +671,8 @@ func finalizePortsList(udi string) {
 				log.Fatalf("Error: Undefined list given: \"%s\"", nl[i])
 			}
 		}
+	}
+	if Verbosity[2] {
+		fmt.Println("DEBUG: buildPortsList(): Resulting PortList [",ThisScan.NetDeets.PortList,"]")
 	}
 }
