@@ -108,7 +108,7 @@ func (ts *Target) EvalObj() uint8 {
 	if err != nil {
 		// not an IP address, continue
 	} else {
-		ts.Ip = ip.AsSlice() // Do you think the person who wrote this func was, like, cracking up and giggling uncontrollably at "ASSLICE", or do you think they did it with a straight face? I know I couldn't. I wonder about these things. --chux0r 
+		ts.Ip = ip.AsSlice() // Do you think the person who wrote this func was cracking up and giggling uncontrollably at "ASSLICE", or do you think they did it with a 100% straight face? I know I couldn't. I wonder about these things. --chux0r 
 		l := len(ts.Ip)
 		if l == 4 {
 			return 1 // is IPv4 addr
@@ -166,7 +166,7 @@ type ReconSpec struct {
 var Verbosity = [3]bool{ true, false, false }  
 var ThisScan ScanSpec
 var ThisRecon ReconSpec
-var BangMode uint8 = 0 // Modes: info: 0, scanning: 1, recon: 2 -- SAFETY ON - default to "not scan"
+var BangMode uint8 = 1 // Modes: info: 0, scanning: 1, recon: 2 -- SAFETY ON - default to "not scan"
 
 func init() {
 	
@@ -183,7 +183,7 @@ func init() {
 	portsDo2     := flag.String("ports", "", "Same as \"-p\", above.")
 	portsfileDo  := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
 	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
-	protoDo      := flag.Bool("proto", false, "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	protoDo      := flag.String("proto", "", "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
 	reconDo      := flag.String("recon", "", "Invoke recon services using: \"--recon <service> <method> <apikey>\". List services and methods available with \"--recon list\".")
 	timeoutSet   := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
 	/*
@@ -197,9 +197,13 @@ func init() {
 	flag.Parse()
 	// END FLAG EVAL+PARSE
 	
+	
+	
 	// DEBUG + VERBOSITY
 	if *debugDo {
-		Verbosity = [3]bool{true, true, true}	
+		Verbosity = [3]bool{true, true, true}
+		fmt.Println("DEBUG: flags set: [",flag.NFlag(), "]")
+		flag.Visit(func(f *flag.Flag){fmt.Printf("DEBUG: Flag [%s]: SET\n\tVALUE -> [%s]\n", f.Name, f.Value.String())})
 	}
 	
 	// HELP MENU
@@ -215,6 +219,8 @@ func init() {
 	
 	netbang [[FLAGS] <object(,optionals)>] <TARGET>
 		CONFIG FLAGS
+			[--debug]
+			Enable detailed debug output.
 			[--env]
 			Print local client environment details.
 			[--ns] <IP(:port)> 
@@ -269,13 +275,15 @@ func init() {
 	constructor()	//  initialize default target endpoint spec  
 
 	if *envDo {
-		BangMode = 0
 		osutils.Ifstat()
 	}
 
 	if len(*portsDo) > 0 || len(*portsDo2) > 0 || len(*portsfileDo) > 0 || len(*portsfileDo2) > 0 { // what if some crazy person sets all of these? Hm. Sure. Why not. Just detect it and append everything together with slicefu
 		BangMode = 1
 		ThisScan.NetDeets.PortList = []uint16{}      // zero out default port defs since we GOIN'CUSTOM yee-haw
+		if Verbosity[2] {
+			fmt.Println("DEBUG: CUSTOM PORTDEF->PortList: RESET\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+		}
 		if len(*portsDo) > 0 && len(*portsDo2) > 0 { //ifdef -p --ports
 			log.Print("Warning: Ports given with both -p and --ports. Combining.")
 		}
@@ -284,9 +292,15 @@ func init() {
 		}
 		if len(*portsDo) > 0 { // ifdef -p
 			buildPortsList(*portsDo)
+			if Verbosity[2] {
+				fmt.Println("DEBUG: CUSTOM PORTDEF->buildPortsList() COMPLETE:\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+			}
 		}
 		if len(*portsDo2) > 0 { // ifdef --ports
 			buildPortsList(*portsDo2)
+			if Verbosity[2] {
+				fmt.Println("DEBUG: CUSTOM PORTDEF->buildPortsList() COMPLETE:\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+			}
 		}
 		if len(*portsfileDo) > 0 { // ifdef -pf read given user port config file
 			log.Printf("Opening user-defined port config file [%s].", *portsfileDo)
@@ -303,17 +317,39 @@ func init() {
 			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
 			fmt.Printf("\nData read from cf file: >> %s", string(p))
 			buildPortsList(string(p))
+			if Verbosity[2] {
+				fmt.Println("DEBUG: CUSTOM PORTDEF->buildPortsList() COMPLETE:\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+			}
+		}
+		if len(*portsfileDo2) > 0 { // ifdef -pf read given user port config file
+			log.Printf("Opening user-defined port config file [%s].", *portsfileDo2)
+			pconf, err := os.Open(*portsfileDo2)
+			p := make([]byte, 4096)
+			if err != nil {
+				log.Fatalf("Error opening file [%s]: [%s]. Exiting", *portsfileDo2, err.Error())
+			}
+			defer pconf.Close()
+			fsize, err := pconf.Read(p)
+			if err != nil {
+				log.Fatalf("Error reading file: [%s]. Exiting", *portsfileDo2)
+			}
+			p = p[:fsize] // trim buffer to infile size or we'll have NUL padding everywhere, which will cause paresePortsCdl to misparse and barf
+			fmt.Printf("\nData read from cf file: >> %s", string(p))
+			buildPortsList(string(p))
+			if Verbosity[2] {
+				fmt.Println("DEBUG: CUSTOM PORTDEF->buildPortsList() COMPLETE:\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+			}
 		}
 	}
 
-	if *protoDo {
-		BangMode = 1
-		if flag.Arg(0) == "" {
-			fmt.Print("\nWarning: No protocol listed with --proto. Using \"tcp\".")
+	if len(*protoDo) > 0 { // if set by CLI flag
+		p := strings.ToLower(*protoDo)
+		if p != "tcp" && p != "udp" { 
+			log.Fatalf("Error: Invalid protocol: [%s] Allowed protocols: \"tcp\" or \"udp\".", flag.Arg(0)) // MOVE THESE PROTO CHECKS OUT TO RESPECTIVE MODULES (there will be more protocols allowed, and better contextual ways to validate, but it won't be here --ctg)
 		} else {
-			ThisScan.NetDeets.Protocol = strings.ToLower(flag.Arg(0))
-			if ThisScan.NetDeets.Protocol != "tcp" && ThisScan.NetDeets.Protocol != "udp" { 
-				log.Fatalf("Error: Invalid protocol: [%s] Allowed protocols: \"tcp\" or \"udp\".", flag.Arg(0)) // MOVE THESE PROTO CHECKS OUT TO RESPECTIVE MODULES (there will be more protocols allowed, and better contextual ways to validate, but it won't be here --ctg)
+			ThisScan.NetDeets.Protocol = p
+			if Verbosity[2] {
+				fmt.Println("DEBUG: PROTOCOL-SET, COMPLETE:\n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
 			}
 		}
 	}
@@ -354,11 +390,11 @@ func init() {
 func main() {
 	if BangMode == 0 {
 		fmt.Println("Information-only mode, complete.")
-	} else if BangMode == 1 {         //scan
+	} else if BangMode == 1 {  //scan
 		bangHost(ThisScan.NetDeets.PortList, ThisScan.Targ.Obj, ThisScan.NetDeets.Protocol)
 	} else if BangMode == 2 {  //recon
 		recon(ThisRecon.Mode, ThisRecon.Args, ThisScan.Targ.Obj)
-	} else {
+	} else {                   //lolwut
 		log.Fatalln("Unnkown execution mode. Exiting.")
 	}
 }
@@ -369,6 +405,9 @@ func constructor() {
 	ThisScan.NetDeets.PortList.Add(portfu.InitDefault("tcp_short"))
 	ThisScan.Targ.Ip = net.IP{127,0,0,1}
 	ThisScan.Targ.Obj = ThisScan.Targ.Ip.String()
+	if Verbosity[2] {
+		fmt.Println("DEBUG: constructor() complete. \n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
+	}
 }
 
 /******************************************************************************
@@ -607,7 +646,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 				fmt.Println("DEBUG: parsePortsCDL(): [", item, "] result: NAN")
 			}
 			if port == 45 { // 45d is 0x2d, a.k.a. the hyphen. Possible num1-num2 range.
-				pr = portfu.ArgsToPortRange(item) // Check port range def and populate BangSpan if valid
+				pr = portfu.StringToPortRange(item) // Check port range def and populate BangSpan if valid
 				if Verbosity[2] {
 					fmt.Println("DEBUG: parsePortsCDL(): [", item, "] is possibly a port range.\nDEBUG: ArgsToPortRange. Result: RANGE[", pr.Start,"]:[", pr.End, "]")
 				}

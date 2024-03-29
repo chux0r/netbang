@@ -40,35 +40,8 @@ type PortList []uint16
 
 func (pl *PortList)Add(a []uint16) {
 	*pl = append(*pl, a...)	
-	
-	// OMFG the debugging code. 1 line "append" to fix all that fancy shit LOL
-	//holdr := *pl 
-	//fmt.Println("DEBUG: PortList pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
-	//fmt.Println("DEBUG: The ports to ADD: [", a, "]")
-	//fmt.Println("DEBUG: The COPY: holdr[", holdr, "] &holdr[", &holdr,"]")
-	//*pl = make([]uint16, 0, len(holdr)+len(a)) //stretch capacity out to total size
-	
-	//fmt.Println("DEBUG: LEN holdr [", len(holdr), "] + LEN a [", len(a), "]")
-	//fmt.Println("DEBUG: NEWLEN *pl [", len(*pl), "]")
-	//fmt.Println("DEBUG: After MAKENEW: pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
-	//copy(*pl, holdr)
-	//fmt.Println("DEBUG: After COPY tmp INTO: pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
-	
-	//fmt.Println("DEBUG: After APPEND NEW PORTS pl[", pl, "] *pl[", []uint16(*pl), "] &pl[", &pl,"]")
-	/*
-	tmp := pl
-	fmt.Println("DEBUG: PortList pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
-	fmt.Println("DEBUG: The ports to ADD: [", a, "]")
-	fmt.Println("DEBUG: The COPY tmp[", tmp, "] *pl[", *tmp, "] &pl[", &tmp,"]")
-	*pl = make([]uint16, 0, len(*tmp)+len(a)) //stretch capacity out to total size
-	fmt.Println("DEBUG: LEN tmp [", len(*tmp), "] + LEN a [", len(a), "]")
-	fmt.Println("DEBUG: After MAKENEW: pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
-	copy(*pl, *tmp)
-	fmt.Println("DEBUG: After COPY tmp INTO: pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
-	*pl = append(*pl, a...)
-	fmt.Println("DEBUG: After APPEND NEW PORTS pl[", pl, "] *pl[", *pl, "] &pl[", &pl,"]")
-	*/
-}
+}	
+
 
 // InitDefault() builds and returns a port list slice for netBang. It is based on (IMHO) some reasonable and usually of-interest ports. 
 func InitDefault(sp string) PortList{
@@ -112,9 +85,9 @@ func (pr PortRange)Size() int {
 }
 
 /********************************************************************************
-ArgsToPortRange()
+StringToPortRange()
 
-People need to be able to give ranges of ports. Besides, setting up a 65K+
+People need to be able to give ranges, like "1-99". Besides, setting up a 65K+
 item uint16 slice just to scan all the ports would be dumb.
 
 Input:  String with a hyphen, indicating either a port range definition or an
@@ -128,7 +101,7 @@ Output: Validated strings will return the beginning port and the ending port of
 
 Note: was "getPortRange()" throught v0.43a
 ********************************************************************************/
-func ArgsToPortRange(s string) PortRange {
+func StringToPortRange(s string) PortRange {
 	var prtn =  PortRange{Start: 0, End: 0}
 	pr := [2]uint16{0,0}
 	numwords := strings.Split(s, "-") // dudes look like a ladies
@@ -162,4 +135,3 @@ func GetSocketString(t string, p uint16) string {
 	s := fmt.Sprintf("%s:%d", t, p)
 	return s
 }
-

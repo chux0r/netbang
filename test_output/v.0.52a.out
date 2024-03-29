@@ -1,0 +1,166 @@
+mongoose@thoughtcrime:~/workbench/dev/golang/netbang$ ./test.bash 
+Build test by: mongoose@thoughtcrime:/home/mongoose/workbench/dev/golang/netbang
+Date:Fri Mar 29 04:43:13 PM CDT 2024
+ -- GO version: go version go1.20.3 linux/amd64
+ -- Platform OS/arch details: Linux thoughtcrime 6.5.0-26-generic #26~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Mar 12 10:22:43 UTC 2 x86_64 x86_64 x86_64 GNU/Linux
+
+
+=============BUILD: go build ./netbang.go ./recon.go ./resolver.go
+NETBANG TEST CASES:
+./netbang
+
+	USAGE:
+	netbang [-h|--help]
+		Print this help screen.
+	netbang [-l|--lists] [<Listname>] 
+		Print all usable pre-configured TCP and UDP port group lists and names. With <Listname>, show detailed port listing within <Listname>. 
+	
+	netbang [[FLAGS] <object(,optionals)>] <TARGET>
+		CONFIG FLAGS
+			[--debug]
+			Enable detailed debug output.
+			[--env]
+			Print local client environment details.
+			[--ns] <IP(:port)> 
+			Set DNS resolver to IP (and optionally port, 53 is default). Default setup uses 1.1.1.1:53 (Cloudflare).
+	
+		SCANNING FLAGS
+			[-p|--ports] <num0(,num1,num2,...numN,numA-numZ,named_list)> 
+			Specify port numbers, port ranges, and/or named portlists to use. TCP or UDP proto only. 
+			(View named portlists with --lists)
+	
+			[-pf|--portsfile] <(directory path/)filename>
+			Input from file a comma-delimited list of port numbers to scan. TCP or UDP proto only.
+	
+			[--proto] <tcp|udp>
+			Specify protocol to use, tcp, udp, or icmp. Default is "tcp".
+	
+			[-t] <timeout, in ms>
+			Network connect timeout to use. Defaults to 3 seconds (3000ms). To use network-defined timeout, set to -1.
+		
+		RECON FLAGS
+			[--recon] <list> | [--recon] <service> <method> <apikey>
+			Ninja recon module. List available modules with "list" or, specify a service, method, and optionally, API keys if needed. 
+	
+		<TARGET> 
+			Object of scan or recon. Target must be an IP address, an IP/CIDR range, or a valid hostname.
+		
+		NOTE: Scanning and Recon are mutually exclusive. Setting scanning flags and recon flags together in the same invocation will behave unpredictably.
+				
+	
+=============BASIC SCAN-BY-HOSTNAME: ./netbang scanme.org
+
+Bang target: [scanme.org], Portcount: [65]
+=====================================================
+TCP portbangers unleashed...😎😎💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀💀
+Jobs run: 65
+scanme.org Scan Results
+================================================================================
+[scanme.org:22] -->	[😎] OPEN
+[scanme.org:80] -->	[😎] OPEN
+[scanme.org:23] -->	[💀] ERROR: dial tcp 45.33.32.156:23: connect: connection refused
+[scanme.org:68] -->	[💀] ERROR: dial tcp 45.33.32.156:68: connect: connection refused
+[scanme.org:69] -->	[💀] ERROR: dial tcp 45.33.32.156:69: connect: connection refused
+[scanme.org:113] -->	[💀] ERROR: dial tcp 45.33.32.156:113: connect: connection refused
+[scanme.org:43] -->	[💀] ERROR: dial tcp 45.33.32.156:43: connect: connection refused
+[scanme.org:8088] -->	[💀] ERROR: dial tcp 45.33.32.156:8088: connect: connection refused
+[scanme.org:53] -->	[💀] ERROR: dial tcp 45.33.32.156:53: connect: connection refused
+[scanme.org:79] -->	[💀] ERROR: dial tcp 45.33.32.156:79: connect: connection refused
+[scanme.org:88] -->	[💀] ERROR: dial tcp 45.33.32.156:88: connect: connection refused
+[scanme.org:389] -->	[💀] ERROR: dial tcp 45.33.32.156:389: connect: connection refused
+[scanme.org:143] -->	[💀] ERROR: dial tcp 45.33.32.156:143: connect: connection refused
+[scanme.org:179] -->	[💀] ERROR: dial tcp 45.33.32.156:179: connect: connection refused
+[scanme.org:443] -->	[💀] ERROR: dial tcp 45.33.32.156:443: connect: connection refused
+[scanme.org:513] -->	[💀] ERROR: dial tcp 45.33.32.156:513: connect: connection refused
+[scanme.org:546] -->	[💀] ERROR: dial tcp 45.33.32.156:546: connect: connection refused
+[scanme.org:547] -->	[💀] ERROR: dial tcp 45.33.32.156:547: connect: connection refused
+[scanme.org:177] -->	[💀] ERROR: dial tcp 45.33.32.156:177: connect: connection refused
+[scanme.org:636] -->	[💀] ERROR: dial tcp 45.33.32.156:636: connect: connection refused
+[scanme.org:1521] -->	[💀] ERROR: dial tcp 45.33.32.156:1521: connect: connection refused
+[scanme.org:1337] -->	[💀] ERROR: dial tcp 45.33.32.156:1337: connect: connection refused
+[scanme.org:8443] -->	[💀] ERROR: dial tcp 45.33.32.156:8443: connect: connection refused
+[scanme.org:67] -->	[💀] ERROR: dial tcp 45.33.32.156:67: connect: connection refused
+[scanme.org:464] -->	[💀] ERROR: dial tcp 45.33.32.156:464: connect: connection refused
+[scanme.org:25] -->	[💀] ERROR: dial tcp 45.33.32.156:25: connect: connection refused
+[scanme.org:5061] -->	[💀] ERROR: dial tcp 45.33.32.156:5061: connect: connection refused
+[scanme.org:5432] -->	[💀] ERROR: dial tcp 45.33.32.156:5432: connect: connection refused
+[scanme.org:1434] -->	[💀] ERROR: dial tcp 45.33.32.156:1434: connect: connection refused
+[scanme.org:515] -->	[💀] ERROR: dial tcp 45.33.32.156:515: connect: connection refused
+[scanme.org:2222] -->	[💀] ERROR: dial tcp 45.33.32.156:2222: connect: connection refused
+[scanme.org:853] -->	[💀] ERROR: dial tcp 45.33.32.156:853: connect: connection refused
+[scanme.org:2323] -->	[💀] ERROR: dial tcp 45.33.32.156:2323: connect: connection refused
+[scanme.org:2375] -->	[💀] ERROR: dial tcp 45.33.32.156:2375: connect: connection refused
+[scanme.org:873] -->	[💀] ERROR: dial tcp 45.33.32.156:873: connect: connection refused
+[scanme.org:2483] -->	[💀] ERROR: dial tcp 45.33.32.156:2483: connect: connection refused
+[scanme.org:993] -->	[💀] ERROR: dial tcp 45.33.32.156:993: connect: connection refused
+[scanme.org:3306] -->	[💀] ERROR: dial tcp 45.33.32.156:3306: connect: connection refused
+[scanme.org:3389] -->	[💀] ERROR: dial tcp 45.33.32.156:3389: connect: connection refused
+[scanme.org:5800] -->	[💀] ERROR: dial tcp 45.33.32.156:5800: connect: connection refused
+[scanme.org:5900] -->	[💀] ERROR: dial tcp 45.33.32.156:5900: connect: connection refused
+[scanme.org:3333] -->	[💀] ERROR: dial tcp 45.33.32.156:3333: connect: connection refused
+[scanme.org:5060] -->	[💀] ERROR: dial tcp 45.33.32.156:5060: connect: connection refused
+[scanme.org:1433] -->	[💀] ERROR: dial tcp 45.33.32.156:1433: connect: connection refused
+[scanme.org:990] -->	[💀] ERROR: dial tcp 45.33.32.156:990: connect: connection refused
+[scanme.org:8081] -->	[💀] ERROR: dial tcp 45.33.32.156:8081: connect: connection refused
+[scanme.org:593] -->	[💀] ERROR: dial tcp 45.33.32.156:593: connect: connection refused
+[scanme.org:8008] -->	[💀] ERROR: dial tcp 45.33.32.156:8008: connect: connection refused
+[scanme.org:8080] -->	[💀] ERROR: dial tcp 45.33.32.156:8080: connect: connection refused
+[scanme.org:587] -->	[💀] ERROR: dial tcp 45.33.32.156:587: connect: connection refused
+[scanme.org:2484] -->	[💀] ERROR: dial tcp 45.33.32.156:2484: i/o timeout
+[scanme.org:20] -->	[💀] ERROR: dial tcp 45.33.32.156:20: i/o timeout
+[scanme.org:139] -->	[💀] ERROR: dial tcp 45.33.32.156:139: i/o timeout
+[scanme.org:445] -->	[💀] ERROR: dial tcp 45.33.32.156:445: i/o timeout
+[scanme.org:512] -->	[💀] ERROR: dial tcp 45.33.32.156:512: i/o timeout
+[scanme.org:21] -->	[💀] ERROR: dial tcp 45.33.32.156:21: i/o timeout
+[scanme.org:989] -->	[💀] ERROR: dial tcp 45.33.32.156:989: i/o timeout
+[scanme.org:110] -->	[💀] ERROR: dial tcp 45.33.32.156:110: i/o timeout
+[scanme.org:1270] -->	[💀] ERROR: dial tcp 45.33.32.156:1270: i/o timeout
+[scanme.org:111] -->	[💀] ERROR: dial tcp 45.33.32.156:111: i/o timeout
+[scanme.org:514] -->	[💀] ERROR: dial tcp 45.33.32.156:514: i/o timeout
+[scanme.org:995] -->	[💀] ERROR: dial tcp 45.33.32.156:995: i/o timeout
+[scanme.org:135] -->	[💀] ERROR: dial tcp 45.33.32.156:135: i/o timeout
+[scanme.org:119] -->	[💀] ERROR: dial tcp 45.33.32.156:119: i/o timeout
+[scanme.org:137] -->	[💀] ERROR: dial tcp 45.33.32.156:137: i/o timeout
+
+=============UDP SCAN, PORTS DEFINED IN FILE, CUSTOM TIMEOUT ./netbang --proto udp --portsfile ../netbang_ports.tmp -t 500 127.0.0.1
+
+	FILE INJECT ../netbang_ports.tmp:53,161,10000
+2024/03/29 16:43:16 Opening user-defined port config file [../netbang_ports.tmp].
+
+Data read from cf file: >> 53,161,10000
+Bang target: [127.0.0.1], Portcount: [3]
+=====================================================
+UDP portbangers unleashed...💀💀💀
+Jobs run: 3
+127.0.0.1 Scan Results
+================================================================================
+[127.0.0.1:10000] -->	[💀] ERROR: read udp 127.0.0.1:51959->127.0.0.1:10000: read: connection refused
+[127.0.0.1:53] -->	[💀] ERROR: read udp 127.0.0.1:51869->127.0.0.1:53: read: connection refused
+[127.0.0.1:161] -->	[💀] ERROR: read udp 127.0.0.1:59346->127.0.0.1:161: read: connection refused
+
+=============EXECUTE: ./netbang --recon list
+
+Ninja recon services and methods available:
+	[shodan] :: Shodan is a search engine for Internet-connected devices. Requires API key. See https://developer.shodan.io/api
+	[dns]    :: DNS performs a lookup on a hostname, reverse lookup on an IP address.
+
+=============EXECUTE: ./netbang --recon dns amazon.com
+
+DNS lookup: [amazon.com] Resolver: [1.1.1.1] Port: 53
+Host [amazon.com] resolves as:
+	IP #1: 52.94.236.248
+	IP #2: 205.251.242.103
+	IP #3: 54.239.28.85
+
+=============EXECUTE: ./netbang --recon dns --ns 8.8.8.8 github.com
+2024/03/29 16:43:16 Nameserver-set host IP: [8.8.8.8]
+Custom DNS resolver:  8.8.8.8
+
+DNS lookup: [github.com] Resolver: [8.8.8.8] Port: 53
+Host [github.com] resolves as:
+	IP #1: 140.82.114.4
+
+=============EXECUTE: ./netbang --recon shodan hostip 1.1.1.1
+
+Unparsed Shodan data for target 1.1.1.1:
+&{ [161 2082 2083 2052 69 2086 2087 2095 80 8880 8080 53 8443 443 2096] 1.1.1.1 Cloudflare, Inc. [one.one.one.one] APNIC and Cloudflare DNS Resolver project [] AS13335 2024-03-29T16:29:46.208910 [0xc000002300 0xc000002480 0xc000002600 0xc000002780 0xc000002900 0xc000002a80 0xc000002c00 0xc000002d80 0xc000002f00 0xc000003080 0xc000003200 0xc000003380 0xc000003500 0xc000003680 0xc000003800 0xc000003980] {The Rocks NSW 0 -33.85923 151.2081 Australia AU   0}}
