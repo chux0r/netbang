@@ -641,6 +641,9 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 			fmt.Println("DEBUG: parsePortsCDL(): Evaluating item [", item, "]")
 		}
 		port, isnum = uglynum.NumStringToInt32(item)
+		if port >= 65536 || port <= 0 {
+			log.Fatalln("Error! Port number [", port, "] is not valid. Must be between 1 and 65535. Exiting")
+		}
 		if isnum == false { // put the name in the list of bytes/runes that don't represent numbers
 			if Verbosity[2] {
 				fmt.Println("DEBUG: parsePortsCDL(): [", item, "] result: NAN")
