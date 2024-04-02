@@ -151,6 +151,23 @@ type ScanSpec struct {
 	Timeout  int32 //timeout in ms
 }
 
+/* (*ScanSpec)Init() Start us off with sensible default values, based on context given*/
+func (scn *ScanSpec)Init(ctx string){
+	if ctx == "bangscan" {
+		scn.NetDeets.Protocol = "tcp"
+		scn.NetDeets.PortList.Add(portfu.InitDefault("tcp_short"))
+		scn.Targ.Ip = net.IP{127,0,0,1}
+		scn.Targ.Obj = ThisScan.Targ.Ip.String()
+		
+	} else if ctx == "recon" {
+		scn.Targ.Ip = net.IP{127,0,0,1}
+		scn.Targ.Obj = ThisScan.Targ.Ip.String()
+	}
+	if Verbosity[2] {
+		fmt.Println("DEBUG: (*ScanSpec)Init(", ctx, ") complete. \n\tTARGET NET: [", scn.NetDeets, "]\n\tTARGET: [", scn.Targ.Obj, "]")
+	}
+}
+
 type ReconSpec struct {
 	Mode    string
 	Method  string
@@ -272,7 +289,8 @@ func init() {
 		os.Exit(0)
 	}
 					//  After this point we start to define target stuff for recon or scanning
-	constructor()	//  initialize default target endpoint spec  
+	//constructor()	//  initialize default target endpoint spec  
+	ThisScan.Init("bangscan")
 
 	if *envDo {
 		osutils.Ifstat()
@@ -399,7 +417,8 @@ func main() {
 	}
 }
 
-/* scanConstructor() just start off with sensible default values. Most defaults aim at "tcp scan" context */
+/* scanConstructor() RETIRED: REPLACED WITH (*ScanSpec)Init()
+just start off with sensible default values. Most defaults aim at "tcp scan" context 
 func constructor() {
 	ThisScan.NetDeets.Protocol = "tcp"
 	ThisScan.NetDeets.PortList.Add(portfu.InitDefault("tcp_short"))
@@ -408,7 +427,7 @@ func constructor() {
 	if Verbosity[2] {
 		fmt.Println("DEBUG: constructor() complete. \n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
 	}
-}
+}*/
 
 /******************************************************************************
 bangHost()
@@ -644,7 +663,7 @@ func parsePortsCdl(s string) ([]uint16, []string) {
 		if port >= 65536 || port <= 0 {
 			log.Fatalln("Error! Port number [", port, "] is not valid. Must be between 1 and 65535. Exiting")
 		}
-		if isnum == false { // put the name in the list of bytes/runes that don't represent numbers
+		if !isnum { // put the name in the list of bytes/runes that don't represent numbers
 			if Verbosity[2] {
 				fmt.Println("DEBUG: parsePortsCDL(): [", item, "] result: NAN")
 			}
