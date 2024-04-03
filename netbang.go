@@ -185,37 +185,34 @@ var ThisScan ScanSpec
 var ThisRecon ReconSpec
 var BangMode uint8 = 1 // Modes: info: 0, scanning: 1, recon: 2 -- SAFETY ON - default to "not scan"
 
-func init() {
+func flagInit() {
 	
 	// CLI FLAG CONFIGS
-	//doDo       := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
-	envDo        := flag.Bool("env", false, "Print local host environment, platform, arch, and network details.")
-	//fakeDo     := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
-	helpDo       := flag.Bool("h", false, "Pull up a detailed \"help\" screen and exit.")
-	helpDo2      := flag.Bool("help", false, "Same as \"-h\", above.")
-	listsDo      := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
-	listsDo2     := flag.Bool("lists", false, "Same as \"-l\", above.")
-	dnsrvDo      := flag.Bool("ns", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
-	portsDo      := flag.String("p", "", "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
-	portsDo2     := flag.String("ports", "", "Same as \"-p\", above.")
-	portsfileDo  := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
+	//doDo := flag.Bool("do", false, "Specify the activity: scan, qrecon, dnsinfo. Default is \"scan\".")
+	envDo := flag.Bool("env", false, "Print local host environment, platform, arch, and network details.")
+	//fakeDo := flag.Bool("dryrun", false, "Do not execute. Print current activities list, pre-validate all, print config and pre-conditions.")
+	helpDo := flag.Bool("h", false, "Pull up a detailed \"help\" screen and exit.")
+	helpDo2 := flag.Bool("help", false, "Same as \"-h\", above.")
+	listsDo := flag.Bool("l", false, "Print all pre-configured TCP and UDP port group lists and list names. \n\t(--lists <Listname>) shows detailed port listing for <Listname>.")
+	listsDo2 := flag.Bool("lists", false, "Same as \"-l\", above.")
+	dnsrvDo := flag.Bool("ns", false, "Set DNS resolver to use. Default is to use your system's local resolver.")
+	portsDo := flag.String("p", "", "Specify a port or ports, and/or named portlists to use in a comma-delimited list. TCP or UDP scans only.\n\t(Available port lists may be pulled up with \"netscanx --lists\")")
+	portsDo2 := flag.String("ports", "", "Same as \"-p\", above.")
+	portsfileDo := flag.String("pf", "", "Input comma-delimited list of target ports from a file.")
 	portsfileDo2 := flag.String("portsfile", "", "Same as \"-p\", above.")
-	protoDo      := flag.String("proto", "", "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
-	reconDo      := flag.String("recon", "", "Invoke recon services using: \"--recon <service> <method> <apikey>\". List services and methods available with \"--recon list\".")
-	timeoutSet   := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
+	protoDo := flag.String("proto", "", "Define the protocol to use: tcp, udp, or icmp. Default is \"tcp\".")
+	reconDo := flag.String("recon", "", "Invoke recon services using: \"--recon <service> <method> <apikey>\". List services and methods available with \"--recon list\".")
+	timeoutSet := flag.Int("t", 3000, "Network connect timeout to use, in milliseconds. To use network-defined timeout, set to -1. Default is 3000(ms)")
 	/*
 		verboseDo  := flag.Bool("v", false, "Verbose runtime output")
 		verboseDo2 := flag.Bool("verbose", false, "Same as \"-v\", above. ")
 		verboseDo3 := flag.Bool("vv", false, "Debug-level-verbosity runtime output. Obscenely verbose.")
 		verboseDo4 := flag.Bool("debug", false, "Same as \"-vv\", above.")
 	*/
-	debugDo      := flag.Bool("debug", false, "Turn on debug output.")
-
+	debugDo := flag.Bool("debug", false, "Turn on debug output.")
 	flag.Parse()
 	// END FLAG EVAL+PARSE
-	
-	
-	
+
 	// DEBUG + VERBOSITY
 	if *debugDo {
 		Verbosity = [3]bool{true, true, true}
@@ -289,7 +286,6 @@ func init() {
 		os.Exit(0)
 	}
 					//  After this point we start to define target stuff for recon or scanning
-	//constructor()	//  initialize default target endpoint spec  
 	ThisScan.Init("bangscan")
 
 	if *envDo {
@@ -406,6 +402,7 @@ func init() {
 }
 
 func main() {
+	flagInit()
 	if BangMode == 0 {
 		fmt.Println("Information-only mode, complete.")
 	} else if BangMode == 1 {  //scan
@@ -416,18 +413,6 @@ func main() {
 		log.Fatalln("Unnkown execution mode. Exiting.")
 	}
 }
-
-/* scanConstructor() RETIRED: REPLACED WITH (*ScanSpec)Init()
-just start off with sensible default values. Most defaults aim at "tcp scan" context 
-func constructor() {
-	ThisScan.NetDeets.Protocol = "tcp"
-	ThisScan.NetDeets.PortList.Add(portfu.InitDefault("tcp_short"))
-	ThisScan.Targ.Ip = net.IP{127,0,0,1}
-	ThisScan.Targ.Obj = ThisScan.Targ.Ip.String()
-	if Verbosity[2] {
-		fmt.Println("DEBUG: constructor() complete. \n\tTARGET NETWORK DETAIL: [", ThisScan.NetDeets, "]\n\tTARGET: [", ThisScan.Targ.Obj, "]")
-	}
-}*/
 
 /******************************************************************************
 bangHost()
@@ -583,7 +568,7 @@ func bangUdpPort(t string, ch chan string, job *int) {
 }
 
 func printReport(ss []string) {
-	fmt.Printf("\n%s Scan Results\n================================================================================", ThisScan.Targ.Obj)
+	fmt.Printf("\n%s bangScan Results\n================================================================================", ThisScan.Targ.Obj)
 	for _, result := range ss {
 		fmt.Printf("\n%s", result)
 	}

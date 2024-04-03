@@ -5,8 +5,16 @@ import (
 	"net"
 )
 
+// test main func
+func TestBangHost(t *testing.T) {
+	target := "scanme.org"
+	proto  := "tcp"
+	pl     := []uint16{22,23,80} // SPOILERS: {22:open, 23:closed, 80:open} on scanme.org
+	bangHost(pl, target, proto)  
+}
+
 // test that resolution happens, and that DnsData.IPs is populated
-func TestScanConstruct(t *testing.T){
+func TestScanConstruct(t *testing.T) {
 	var wantip = net.IP{127,0,0,1}
 	sl := 65
 	ctx := "bangspan"
@@ -19,3 +27,4 @@ func TestScanConstruct(t *testing.T){
 	}  
 	
 }
+
