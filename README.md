@@ -15,12 +15,12 @@ Scrappy endpoint and network interrogator/wringer-outer written in Go.
 
 ## Features-and-decision-steering ideas
 + **It's always about getting information**, not necessarily about poking everything in the fucking eye.
-     + The best, stealthiest, most valuable scanning info might be achieved by *not scanning*. *This is Zen asf. Oh yeah*
+     + The best, stealthiest, most valuable scanning info might be achieved by *not scanning*. *Zen asf. Oh yeah*
      + Use data sources and APIs like Shodan to gather; prioritize this approach before thinking about banging away on the 'net.
 + To address the "not enough time in my lifetime to scan every address" problem, try what anthropologists and other survey-based researchers have known for a long time:
-     + **We can't dig everything** and sift through it. We have neither the time nor the money. 
-     + **Use avaliable intelligence** and artifacts to determine roughly where you *think* you'll find stuff worth finding.
-     + Maximize limited resources at hand by performing **stratified random sampling** in those places
+     + **We can't dig everything** and then sift through it. We have neither the time nor the money. 
+     + **Prepare, prepare, prepare!** Generate and gather intelligence. Analyze artifacts. Use analytics to intelligently determine roughly where you *think* you'll find stuff worth finding.
+     + Still not enough resources? Maximize limited resources with a **stratified random sampling** approach to those places.
 
 Env: go version go1.20.3 linux/amd64   
 Build using: "go build *."    
